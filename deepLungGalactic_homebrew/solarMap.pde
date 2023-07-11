@@ -97,3 +97,19 @@ class solarMap{
         }
     }
 }
+
+/*
+For temperature maps, store as functions somehow;
+Could store as [blank small + small noise everywhere]
+PLUS [Set of nodesthat emit heat] -> Likely formed around stars or small ones around planets
+   -> These nodes could then sway and move to give variation to sensor readings
+ -> Planets can store their own temperature that is also added to these values
+-> MAYBE imprint all together into a final snapshot Array when a reading is taken
+
+Mineral readings held entirely by planet
+    Use functions to generate mineral distrobution
+    -> Numbers from 0.0 to 1.0, bin to determine material
+        ->0.0 => more common, 1.0 => less common
+    Maybe store the lines that were mined out, So the minerals can be ignored when scanned (within a given radius)
+    -> Will only marginally slow down display of the given planet => good
+*/
