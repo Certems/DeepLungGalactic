@@ -14,6 +14,7 @@ PVector vec_unitVec(PVector v){
     return new PVector(v.x/mag, v.y/mag);
 }
 
+
 //## MAYBE UNNECESSARY ##
 float getLargestElem(ArrayList<ArrayList<Float>> matrix){
     float largestVal = matrix.get(0).get(0);
@@ -36,4 +37,38 @@ float getSmallestElem(ArrayList<ArrayList<Float>> matrix){
         }
     }
     return smallestVal;
+}
+
+
+float calcFalloff(String falloffType, PVector centralPos, PVector targetPos){
+    float valuePercent = 0.0;
+    if(falloffType == "r^-2"){
+        float r = vec_mag(vec_dir(centralPos, targetPos));
+        if(r != 0.0){
+            valuePercent = pow(r, -2);
+        }
+    }
+    if(falloffType == "r^-1"){
+        float r = vec_mag(vec_dir(centralPos, targetPos));
+        if(r != 0.0){
+            valuePercent = pow(r, -1);
+        }
+    }
+    return valuePercent;
+}
+
+
+boolean checkRectRectCollision(PVector pos_1, PVector dim_1, PVector pos_2, PVector dim_2){
+    /*
+    pos specifies the top-left corner
+    dim is full width and height
+    */
+    boolean withinX = abs(pos_1.x +dim_1.x/2.0 -pos_2.x -dim_2.x/2.0) < (dim_1.x/2.0 +dim_2.x/2.0);
+    boolean withinY = abs(pos_1.y +dim_1.y/2.0 -pos_2.y -dim_2.y/2.0) < (dim_1.y/2.0 +dim_2.y/2.0);
+    if(withinX && withinY){
+        return true;
+    }
+    else{
+        return false;
+    }
 }

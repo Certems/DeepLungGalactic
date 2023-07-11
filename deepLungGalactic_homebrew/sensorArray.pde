@@ -19,16 +19,17 @@ class sensorArray{
 
     ArrayList<ArrayList<Float>> sensorData = new ArrayList<ArrayList<Float>>();
 
-    float resolvingPower = 40.0;   //Number of readings that will be taken in each direction OR the density of the heat grid formulated
+    float resolvingPower = 30.0;   //Number of readings that will be taken in each direction OR the density of the heat grid formulated
     float sensorZoom = 1.0;        //Multiplier applied to the NORMALISATION of the given sensor reading -> Therefore when switching types, should still be roughly correct suze as is not a flat scale but affects the norm.
-    int cDataType   = 1;           //Initialised
+    int cDataType   = 0;           //Initialised
     int maxDataType = 5;
+
+    //40 resPwr for distance
+    //30 for temp sensor maybe
 
     sensorArray(PVector cornerPos, PVector panelDim){
         this.cornerPos = cornerPos;
         this.panelDim  = panelDim;
-
-        generate2Darray();
     }
 
     void display(){
@@ -41,6 +42,8 @@ class sensorArray{
         */
         display_background();
         display_sensorData(sensorData, cDataType);
+
+        //displayArray();   //## MINERAL BUG FIXING
     }
     void calc(){
         //pass
@@ -78,10 +81,11 @@ class sensorArray{
         Records data for the given data type, for the given probe
         */
         if(dataType == 1){
-            generate2Darray();
+            //generate2Darray();
+            recordReadings_temperature(cManager.cSolarMap, cProbe);
         }
         if(dataType == 2){
-            //pass
+            recordReadings_mineral(cManager.cSolarMap, cProbe);
         }
         if(dataType == 3){
             //pass
@@ -147,10 +151,118 @@ class sensorArray{
             sensorData.get(0).add( sensorDarts.get(i).storedData );
         }
     }
+    void recordReadings_temperature(solarMap cSolarMap, probe cProbe){
+        /*
+        1. Create a blank area (in sensorData) of specified size (may be different to resolution the world works on)
+        2. Add a temp -> noise close to 0 for general space
+        3. Add a temp -> temp of planets with BOUNDING BOX in range
+        3.5.    MAYBE -> add temp from nodes to create some variation
+
+        Temp of planets stored in planets
+        */
+        sensorData.clear();
+        //1 && 2
+        for(int j=0; j<resolvingPower; j++){
+            sensorData.add(new ArrayList<Float>());
+            for(int i=0; i<resolvingPower; i++){
+                float newValue = random(0.0, cSolarMap.temp_noiseRange);
+                sensorData.get(j).add(newValue);
+            }
+        }
+        //3
+        //Check all bodies
+        for(int p=0; p<cSolarMap.spaceBodies.size(); p++){
+            //If bounding boxes cross
+            PVector expandedScanDim = new PVector(1.2*cProbe.scanDim.x, 1.2*cProbe.scanDim.y);
+            PVector planetDim = new PVector(2.0*cSolarMap.spaceBodies.get(p).radius, 2.0*cSolarMap.spaceBodies.get(p).radius);
+            boolean boundsCross = checkRectRectCollision(cProbe.pos, expandedScanDim, cSolarMap.spaceBodies.get(p).pos, planetDim); //Bounds of viewable screen and planet(+ some change for expanded heat range)
+            if(boundsCross){
+                //Evaluate across whole screen
+                float sizeOfX_Interval = cProbe.scanDim.x/sensorData.get(0).size();
+                float sizeOfY_Interval = cProbe.scanDim.y/sensorData.size();
+                for(int j=0; j<sensorData.size(); j++){
+                    for(int i=0; i<sensorData.get(j).size(); i++){
+                        PVector targetPos = new PVector(cProbe.pos.x -cProbe.scanDim.x/2.0 +i*sizeOfX_Interval, cProbe.pos.y -cProbe.scanDim.y/2.0 +j*sizeOfY_Interval);
+                        float newValue = cSolarMap.spaceBodies.get(p).coreTemp*calcFalloff(cSolarMap.spaceBodies.get(p).tempFalloffType, cSolarMap.spaceBodies.get(p).pos, targetPos);
+                        float oldValue = sensorData.get(j).get(i);
+                        sensorData.get(j).remove(i);
+                        sensorData.get(j).add(i, newValue+oldValue);
+                    }
+                }
+            }
+        }
+    }
+    void recordReadings_mineral(solarMap cSolarMap, probe cProbe){
+        /*
+        1. Create req. space in sensorData ("" "") -> Set a default of zero materials everywhere
+        2. Add mineral -> from planets in the bounding area
+            -> mined out areas will have been removed from the source therefore no problems
+        3. Add noise readings
+        */
+        sensorData.clear();
+        //1
+        for(int j=0; j<resolvingPower; j++){
+            sensorData.add(new ArrayList<Float>());
+            for(int i=0; i<resolvingPower; i++){
+                float newValue = 0.0;//random(0.0, 1.0);  //## ADD A NOISE RANGE FOR MIENRALS SCANS ### ++ DO NOISE AT THE END
+                sensorData.get(j).add(newValue);
+            }
+        }
+        //2
+        //Check all bodies
+        for(int p=0; p<cSolarMap.spaceBodies.size(); p++){
+            //If bounding boxes cross
+            PVector expandedScanDim = new PVector(1.2*cProbe.scanDim.x, 1.2*cProbe.scanDim.y);
+            PVector planetDim = new PVector(2.0*cSolarMap.spaceBodies.get(p).radius, 2.0*cSolarMap.spaceBodies.get(p).radius);
+            boolean boundsCross = checkRectRectCollision(new PVector(cProbe.pos.x -expandedScanDim.x/2.0, cProbe.pos.y -expandedScanDim.y/2.0), expandedScanDim, new PVector(cSolarMap.spaceBodies.get(p).pos.x -planetDim.x/2.0, cSolarMap.spaceBodies.get(p).pos.y -planetDim.y/2.0), planetDim); //Bounds of viewable screen and planet(+ some change for expanded heat range)
+            if(boundsCross){
+                //Evaluate across the whole bound of the body WITHIN sensor range
+                //### WILL LATER NEED TO ACCOUNT FOR ROTATION ###
+                //Go through all cells for the body
+                for(int j=0; j<cSolarMap.spaceBodies.get(p).mineralSet.size(); j++){
+                    for(int i=0; i<cSolarMap.spaceBodies.get(p).mineralSet.get(j).size(); i++){
+                        //If the point is part of the body (NOT just leftover from bounding box)
+                        if(cSolarMap.spaceBodies.get(p).mineralSet.get(j).get(i) != null){
+                            PVector bodyPoint = new PVector(cSolarMap.spaceBodies.get(p).pos.x -cSolarMap.spaceBodies.get(p).radius +i*cSolarMap.spaceBodies.get(p).mineralCellWidth, cSolarMap.spaceBodies.get(p).pos.y -cSolarMap.spaceBodies.get(p).radius +j*cSolarMap.spaceBodies.get(p).mineralCellWidth);  //Centre point of the cell on the body
+                            boolean withinX = (cProbe.pos.x -cProbe.scanDim.x/2.0 <= bodyPoint.x) && (bodyPoint.x < cProbe.pos.x +cProbe.scanDim.x/2.0);
+                            boolean withinY = (cProbe.pos.y -cProbe.scanDim.y/2.0 <= bodyPoint.y) && (bodyPoint.y < cProbe.pos.y +cProbe.scanDim.y/2.0);
+                            boolean pointInSensorRange = (withinX && withinY);
+                            if(pointInSensorRange){
+                                //If appears on the sensor, them find the binned coord that it appears in for the sensor
+                                PVector scanCellDim = new PVector(cProbe.scanDim.x /resolvingPower, cProbe.scanDim.y /resolvingPower);
+                                PVector binnedCoord = new PVector(floor(abs(cProbe.pos.x -cProbe.scanDim.x/2.0 -bodyPoint.x)/scanCellDim.x), floor(abs(cProbe.pos.y -cProbe.scanDim.y/2.0 -bodyPoint.y)/scanCellDim.y));    //From prev. step, this value should be within grid range
+                                println(binnedCoord);
+                                //Add mineral VALUE to this point -> display will convert this to COLOUR ---> ################ ACREFUL FOR NOISE -> FLOOR IN DISPLAY ############ OOORRR ADD NOISE AFTER
+                                float associatedValue = mineralDict.getValue( cSolarMap.spaceBodies.get(p).mineralSet.get(j).get(i) );
+                                sensorData.get( int(binnedCoord.y) ).remove( int(binnedCoord.x) );
+                                sensorData.get( int(binnedCoord.y) ).add( int(binnedCoord.x), associatedValue );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        //3
+        for(int j=0; j<sensorData.size(); j++){
+            for(int i=0; i<sensorData.get(j).size(); i++){
+                float newValue = floor(random(0.0, 40.0));  //## ADD A NOISE RANGE FOR MIENRALS SCANS ### ++ DO NOISE AT THE END #############################
+                if(sensorData.get(j).get(i) == 0.0){    //If is an empty spot, give some noise
+                    sensorData.get(j).remove(i);
+                    sensorData.get(j).add(i, newValue);
+                }
+            }
+        }
+    }
 
     void display_sensorData(ArrayList<ArrayList<Float>> sensorReadings, int dataType){
         /*
         Takes a set of sensor readings (for whichever data is being collected -> all boil down to values)
+
+
+        ####################################################################################################
+        ## SPLIT INTO SEPARATE FUNCTIONS FOR CHRIST SAKE, JUST PUT INTO DIFFERENT "display...." TYBE BEAT ##
+        ####################################################################################################
+
         */
         if(dataType == 1){
             /*
@@ -176,8 +288,8 @@ class sensorArray{
                     boolean isValidX = (0 <= data_x_coord) && (data_x_coord < sensorReadings.get(0).size());
                     boolean isValidY = (0 <= data_y_coord) && (data_y_coord < sensorReadings.size());
                     if(isValidX && isValidY){   //For DATA
-                        plotSymbol = convertValueToSymbol(sensorReadings.get(data_y_coord).get(data_x_coord));
-                        plotColour= convertValueToColour(sensorReadings.get(data_y_coord).get(data_x_coord));}
+                        plotSymbol = convertValueToSymbol_temperature(sensorReadings.get(data_y_coord).get(data_x_coord) / cManager.cSolarMap.temp_maxValue);
+                        plotColour= convertValueToColour_temperature(sensorReadings.get(data_y_coord).get(data_x_coord) / cManager.cSolarMap.temp_maxValue);}
                     else{   //For BORDERS
                         plotSymbol = "p";
                         plotColour= new PVector(70,70,70);}      
@@ -192,7 +304,33 @@ class sensorArray{
             Mineral readings in a GRID around the probe
             => disp. as grid
             */
-            //pass
+            float border    = panelDim.x/30.0;
+            int asciiBorder = 2;
+            float xInterval = (panelDim.x -2.0*border) / (sensorReadings.get(0).size() +2.0*asciiBorder);
+            float yInterval = (panelDim.y -2.0*border) / (sensorReadings.size() +2.0*asciiBorder);
+            float valMax = getLargestElem(sensorReadings);    //Largest value in the whole array              --> DO FOR N DIM ARRAYU
+            float valMin = getSmallestElem(sensorReadings);    // Smallest "" ""
+            for(int j=0; j<sensorReadings.size() +2*asciiBorder; j++){
+                for(int i=0; i<sensorReadings.get(0).size() +2*asciiBorder; i++){
+                    int data_x_coord = i-asciiBorder;
+                    int data_y_coord = j-asciiBorder;
+                    String plotSymbol;
+                    PVector plotColour;
+                    pushStyle();
+                    textAlign(CENTER, CENTER);    //## PROBAQBLY MORE EFFICIENT TO LEQVE OUTSIDE IN ANOTHER NESTED POP-PUSH ##
+                    boolean isValidX = (0 <= data_x_coord) && (data_x_coord < sensorReadings.get(0).size());
+                    boolean isValidY = (0 <= data_y_coord) && (data_y_coord < sensorReadings.size());
+                    if(isValidX && isValidY){   //For DATA
+                        plotSymbol = convertValueToSymbol_mineral(sensorReadings.get(data_y_coord).get(data_x_coord));
+                        plotColour= convertValueToColour_mineral(sensorReadings.get(data_y_coord).get(data_x_coord));}
+                    else{   //For BORDERS
+                        plotSymbol = "o";
+                        plotColour= new PVector(70,70,70);}
+                    fill(plotColour.x, plotColour.y, plotColour.z);
+                    text(plotSymbol, cornerPos.x +border +i*xInterval, cornerPos.y + border +j*yInterval);
+                    popStyle();
+                }
+            }
         }
         if(dataType == 3){
             /*
@@ -262,7 +400,7 @@ class sensorArray{
     }
 
 
-    String convertValueToSymbol(float value){
+    String convertValueToSymbol_temperature(float value){
         /*
         Temperature readings
         Interpolates between AN ESTABLISHED max and min (for the universe)
@@ -287,7 +425,13 @@ class sensorArray{
         newSymbol = "%";
         return newSymbol;
     }
-    PVector convertValueToColour(float value){
+    String convertValueToSymbol_mineral(float value){
+        /*
+        Mineral readings
+        */
+        return "%";
+    }
+    PVector convertValueToColour_temperature(float value){
         /*
         Temperature readings
         Interpolates between AN ESTABLISHED max and min (for the universe)
@@ -313,6 +457,48 @@ class sensorArray{
         }
         return newColour;
     }
+    PVector convertValueToColour_mineral(float value){
+        /*
+        Mineral readings
+        Bin into sections for each mineral type
+
+        ################################################################################################################
+        ## NEEDS TO ACCOUNT FOR QUANTITY --> HOW CAN THAT BE EXPRESSED IN SENSOR DATA -> AS A DECIMAL POINT MAYBE ??? ##
+        ################################################################################################################
+
+        0.0 as min, 1.0 as max
+        */
+        mineral givenMineral = mineralDict.getKey(value);
+        PVector newColour = new PVector(0,0,0);
+        if(givenMineral != null){
+            newColour = givenMineral.colour;}
+        return newColour;
+    }
+
+    //For BUGFIXING #######
+    void displayArray(){
+        if(sensorData.size() == 30){
+            PVector startPos = new PVector(30, 30);
+            float cellSize = 7.0;
+            pushStyle();
+            textSize(cellSize);
+            textAlign(CENTER, CENTER);
+            for(int j=0; j<sensorData.size(); j++){
+                for(int i=0; i<sensorData.get(j).size(); i++){
+                    fill(40,40,40);
+                    if(sensorData.get(j).get(i) == 1.0){
+                        fill(255,0,0);}
+                    if(sensorData.get(j).get(i) == 2.0){
+                        fill(0,255,0);}
+                    if(sensorData.get(j).get(i) == 3.0){
+                        fill(0,0,255);}
+                    text("%", startPos.x +i*cellSize, startPos.y +j*cellSize);
+                }
+            }
+            popStyle();
+        }
+    }
+    //For BUGFIXING #######
 }
 
 class dart{

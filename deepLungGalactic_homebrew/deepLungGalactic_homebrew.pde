@@ -1,9 +1,11 @@
 manager cManager;
+mineralDictionary mineralDict;
 
 void setup(){
     size(800,500);
 
     cManager = new manager();
+    initMineralDict();
 }
 void draw(){
     cManager.display();

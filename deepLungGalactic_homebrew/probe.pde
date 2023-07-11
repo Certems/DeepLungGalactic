@@ -9,7 +9,8 @@ class probe{
     PVector vel;
     PVector acc;
 
-    float mass = 5.0*pow(10,3); //In Kg, estimate
+    float mass = 5.0*pow(10,3);                 //In Kg, estimate
+    PVector scanDim = new PVector(5.0, 5.0);    //In AU, width and height of box -> for temp and minerals
 
     int dataType = 4;   //Which data type the sensor will record when engaged (for this probe); Default is distance
 

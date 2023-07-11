@@ -12,6 +12,9 @@ class solarMap{
     float AuToPixelSF;
     float PixelToAuSF;
 
+    float temp_noiseRange = 400;   //Kelvin temperature range from sensor imperfections
+    float temp_maxValue   = 4000; //Largest value (in kelvin) the sensor can detect (when it maxes to 1.0)
+
     solarMap(float mapRadius){
         this.mapRadius = mapRadius;
         AuToPixelSF = ( min(width, height)/2.0 ) / (mapRadius); //So the solar system takes up the whole screen, only for displaying; All calculations left in NON-PIXEL units
@@ -29,6 +32,8 @@ class solarMap{
         display_ship(displayPos);
         display_spaceBodies(displayPos);
         display_probes(displayPos);
+
+        //spaceBodies.get(0).displayMineralProfile();   //##BUG FIXING
     }
     void display_mapZone(PVector displayPos){
         pushStyle();
@@ -54,7 +59,17 @@ class solarMap{
     void display_probes(PVector displayPos){
         for(int i=0; i<probes.size(); i++){
             display_probe(displayPos, probes.get(i));
+            display_probeScanZone(displayPos, probes.get(i));
         }
+    }
+    void display_probeScanZone(PVector displayPos, probe cBody){
+        pushStyle();
+        stroke(255,0,0);
+        strokeWeight(3);
+        noFill();
+        rectMode(CORNER);
+        rect(displayPos.x +(cBody.pos.x -cBody.scanDim.x/2.0)*AuToPixelSF, displayPos.y +(cBody.pos.y -cBody.scanDim.y/2.0)*AuToPixelSF, cBody.scanDim.x*AuToPixelSF, cBody.scanDim.y*AuToPixelSF);
+        popStyle();
     }
     void display_spaceBody(PVector displayPos, spaceBody cBody){
         pushStyle();
