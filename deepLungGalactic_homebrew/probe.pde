@@ -8,9 +8,11 @@ class probe{
     PVector pos;
     PVector vel;
     PVector acc;
+    PVector statusCol = activeCol;  //Colour of status icon
 
-    float mass = 5.0*pow(10,3);                 //In Kg, estimate
-    PVector scanDim = new PVector(5.0, 5.0);    //In AU, width and height of box -> for temp and minerals
+    float mass       = 5.0*pow(10,3);           //In Kg, estimate
+    PVector scanDim  = new PVector(5.0, 5.0);   //In AU, width and height of box -> for temp and minerals
+    float landingVel = 9999;                    //Maximum velocity for which the probe will not crash when landing
 
     int dataType = 4;   //Which data type the sensor will record when engaged (for this probe); Default is distance
 
@@ -45,5 +47,41 @@ class probe{
     void calcPos(){
         pos.x += vel.x;
         pos.y += vel.y;
+    }
+    void checkForLanding(solarMap cSolarMap){
+        /*
+        Looks through all spaceBodies
+        If this probe is inside or at the edge of the body, land on its surface at the nearest edge point
+        ####################################################################
+        ## BEAR IN MIND THIS WILL NEED TO ACCOUNT FOR PLANET ROTATING TOO ## -> do relative pos, where ALL ROTS occur AFTER
+        ####################################################################
+
+        1. Check all bodies
+        2. If within their bounding box +margin, then check actual distance
+        3. If close enough, set its pos to [dir*radius] -> dir is from centre to probe
+        4.   Change its type to an 'outpost'
+        5. Determine if the landing is crash landing -> whether outpost spawns or not when probe is destroyed
+        */
+        //1
+        for(int i=0; i<cSolarMap.spaceBodies.size(); i++){
+            //2
+            boolean withinX = (cSolarMap.spaceBodies.get(i).pos.x -cSolarMap.spaceBodies.get(i).radius <= pos.x) && (pos.x < cSolarMap.spaceBodies.get(i).pos.x +cSolarMap.spaceBodies.get(i).radius);
+            boolean withinY = (cSolarMap.spaceBodies.get(i).pos.y -cSolarMap.spaceBodies.get(i).radius <= pos.y) && (pos.y < cSolarMap.spaceBodies.get(i).pos.y +cSolarMap.spaceBodies.get(i).radius);
+            if(withinX && withinY){
+                //3
+                PVector dir = vec_dir(cSolarMap.spaceBodies.get(i).pos, pos);
+                float dist  = vec_mag(dir);
+                if(dist <= cSolarMap.spaceBodies.get(i).radius){
+                    //4 & 5
+                    cSolarMap.destroyProbe(this);
+                    float speed = vec_mag(vel);
+                    if(speed <= landingVel){
+                        PVector landingPos = new PVector( cSolarMap.spaceBodies.get(i).radius*(dir.x/dist), cSolarMap.spaceBodies.get(i).radius*(dir.y/dist) );
+                        outpost newOutpost = new outpost(landingPos, cSolarMap.spaceBodies.get(i));
+                        cSolarMap.outposts.add(newOutpost);
+                    }
+                }
+            }
+        }
     }
 }

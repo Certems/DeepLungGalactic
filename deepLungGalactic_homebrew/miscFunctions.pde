@@ -1,3 +1,6 @@
+PVector activeCol   = new PVector(40,250,40);
+PVector inactiveCol = new PVector(250,40,40);
+
 float vec_mag(PVector v){
     return sqrt( pow(v.x,2) + pow(v.y,2) );
 }
@@ -71,4 +74,12 @@ boolean checkRectRectCollision(PVector pos_1, PVector dim_1, PVector pos_2, PVec
     else{
         return false;
     }
+}
+boolean checkLineLineCollision(PVector p1_1, PVector p1_2, PVector p2_1, PVector p2_2){
+    /*
+    p1_1 = line 1, 1st point
+    p1_2 = line 1, 2nd point
+    */
+    //pass
+    return ;
 }

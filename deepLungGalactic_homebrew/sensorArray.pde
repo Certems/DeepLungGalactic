@@ -88,7 +88,7 @@ class sensorArray{
             recordReadings_mineral(cManager.cSolarMap, cProbe);
         }
         if(dataType == 3){
-            //pass
+            recordReadings_sound(cManager.cSolarMap, cProbe);
         }
         if(dataType == 4){
             recordReadings_distance(cManager.cSolarMap, cProbe);
@@ -253,6 +253,28 @@ class sensorArray{
             }
         }
     }
+    void recordReadings_sound(solarMap cSolarMap, probe cProbe){
+        /*
+        'Listens' for sound around the probe
+        The sound is randomised and is related to the proximity of alien squads nearby (spawned by alien clusters)
+        The data for each waveform can be pulled directly from a .mp4 file
+
+        0.0 = no intenisty
+        1.0 = max intenisty
+        */
+        //####
+        //## THIS JUST GENERATES POINTLESS DATA, IN REALITY BASE OFF OF ALIENS & RECORDED SOUND
+        //####
+        sensorData.clear();
+        sensorData.add(new ArrayList<Float>());
+        float variation = 0.07;
+        float angInterval = (3*2.0*PI) / (resolvingPower);
+        for(int i=0; i<resolvingPower; i++){
+            float sinVal = abs(sin(i*angInterval)) / ((i+1)*(angInterval));
+            float varVal = random(0.0, variation);
+            sensorData.get(0).add(sinVal +varVal);
+        }
+    }
 
     void display_sensorData(ArrayList<ArrayList<Float>> sensorReadings, int dataType){
         /*
@@ -335,9 +357,23 @@ class sensorArray{
         if(dataType == 3){
             /*
             Sound readings as scalar values about the probe
-            => disp. on a line (circle in reality)
+            => disp. on a line for intensity of different frequencies -> only able to hear the sound in this mode
             */
-            //pass
+            float border        = panelDim.x/20.0;
+            float intervalJump  = (panelDim.x-2.0*border) / (sensorReadings.get(0).size());
+            float normalisation = panelDim.y/2.0;
+            println("sensordata   -> ",sensorReadings.get(0).size());
+            println("intervalJump -> ",intervalJump);
+            pushStyle();
+            stroke(255,255,255);
+            strokeWeight(2);
+            noFill();
+            line(cornerPos.x +border, cornerPos.y +panelDim.y/2.0, cornerPos.x +panelDim.x -border, cornerPos.y +panelDim.y/2.0);
+            for(int i=0; i<sensorReadings.get(0).size(); i++){
+                ellipse(cornerPos.x +border +i*intervalJump, panelDim.y/2.0 -normalisation*sensorZoom*sensorReadings.get(0).get(i), 10,10);
+                println(normalisation*sensorZoom*sensorReadings.get(0).get(i));
+            }
+            popStyle();
         }
         if(dataType == 4){
             /*
@@ -346,7 +382,7 @@ class sensorArray{
             Distance readings as scalar values about the probe
             => disp. on a line (circle in reality)
             */
-            if(sensorReadings.size() > 0){
+            if(sensorReadings.size() > 0){                  //#### NOT REALLY NEEDED ANYMORE, AS INITIALISES AS NO DATA -> CORRECT SIZE GENERATED WHEN SCANNED ##############
                 float border        = panelDim.x/20.0;
                 float intervalJump  = (panelDim.x-2.0*border) / (sensorReadings.get(0).size());
                 float normalisation = findDataNormalisation(dataType, sensorReadings);  //### Look for largest value, and normalise all values so they fit on the graph ###

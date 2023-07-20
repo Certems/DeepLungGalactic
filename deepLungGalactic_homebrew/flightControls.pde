@@ -20,19 +20,23 @@ class flightControls{
     boolean screen_selection     = true;
     boolean screen_probeControls = false;
     boolean screen_probeLaunch   = false;
+    boolean screen_outpostMining = false;
 
     ArrayList<button> buttonSet = new ArrayList<button>();
-    ArrayList<probeDispCell> probeCellSet = new ArrayList<probeDispCell>();
+    ArrayList<dispCell> probeCellSet   = new ArrayList<dispCell>();
+    ArrayList<dispCell> outpostCellSet = new ArrayList<dispCell>();
 
     PVector cornerPos;  //Top-Left corner defining the origin from which items in this panel are drawn
     PVector panelDim;   //The dimensions of this panel, which must contain all the panel's information
 
+    //Selection
     PVector launchButton_pos;
     PVector launchButton_dim;
     PVector backButton_pos;
     PVector backButton_dim;
     PVector scroller_dim;
     PVector scroller_pos;
+    //Controls
     PVector fuel_dim;
     PVector fuel_pos;
     PVector thrustCtrl_dim;         //For EACH sections
@@ -46,9 +50,27 @@ class flightControls{
     PVector scanSel_pos;         //Pos of the TOP LEFT CORNER of the scanner selector setup
     PVector scanEngage_dim;      //
     PVector scanEngage_pos;      //
+    //Launch
+    PVector launchRelease_dim;  //
+    PVector launchRelease_pos;  //
+    PVector angSelector_dim;        //Make circular, same in x and y
+    PVector angSelector_pos;        //Centre position
+    interactable angSelector = new interactable("angSelector");
+    //Mining
+    PVector drillContinue_dim;  //
+    PVector drillContinue_pos;  //
+    PVector drillStop_dim;          //
+    PVector drillStop_pos;          //
+    PVector mineralTank_dim;    //
+    PVector mineralTank_pos;    //
+    PVector audioQuick_dim;         //
+    PVector audioQuick_pos;         //
+    PVector mineralQuick_dim;   //
+    PVector mineralQuick_pos;   //
 
-    int probeSetIndOffset = 0;          //Offsets the index that the probeSet is first drawn at, so it can be scrolled through
-    float probeCell_cellNumber = 6.0;   //Number of visible cells on screen at once
+    int probeSetIndOffset   = 0;      //Offsets the index that the probeSet is first drawn at, so it can be scrolled through
+    int outpostSetIndOffset = 0;      //
+    float cellNumber = 6.0; //Number of visible cells on screen at once
 
     flightControls(PVector cornerPos, PVector panelDim){
         this.cornerPos = cornerPos;
@@ -73,6 +95,20 @@ class flightControls{
         scanSel_pos = new PVector(cornerPos.x +0.55*panelDim.x, cornerPos.y +0.36*panelDim.y);
         scanEngage_dim = new PVector(0.2*panelDim.x, 0.25*panelDim.y);
         scanEngage_pos = new PVector(cornerPos.x +0.75*panelDim.x, cornerPos.y +0.36*panelDim.y);
+        launchRelease_dim   = new PVector(0.15*panelDim.x, 0.15*panelDim.y);
+        launchRelease_pos   = new PVector(cornerPos.x +0.80*panelDim.x, cornerPos.y +0.60*panelDim.y);
+        angSelector_dim     = new PVector(0.80*panelDim.y, 0.80*panelDim.y);
+        angSelector_pos     = new PVector(cornerPos.x +0.45*panelDim.x, cornerPos.y +0.5*panelDim.y);
+        drillContinue_dim   = new PVector(0.15*panelDim.x,0.15*panelDim.y);
+        drillContinue_pos   = new PVector(cornerPos.x +0.8*panelDim.x,cornerPos.y +0.4*panelDim.y);
+        drillStop_dim       = new PVector(0.15*panelDim.x,0.15*panelDim.y);
+        drillStop_pos       = new PVector(cornerPos.x +0.8*panelDim.x,cornerPos.y +0.25*panelDim.y);
+        mineralTank_dim     = new PVector(0.2*panelDim.x, 0.8*panelDim.y);
+        mineralTank_pos     = new PVector(cornerPos.x +0.06*panelDim.x, cornerPos.y +0.1*panelDim.y);
+        audioQuick_dim      = new PVector(0.1*panelDim.x,0.1*panelDim.x);
+        audioQuick_pos      = new PVector(cornerPos.x +0.4*panelDim.x,cornerPos.y +0.75*panelDim.y);
+        mineralQuick_dim    = new PVector(0.1*panelDim.x,0.1*panelDim.x);
+        mineralQuick_pos    = new PVector(cornerPos.x +0.55*panelDim.x,cornerPos.y +0.75*panelDim.y);
     }
 
     void display(solarMap cSolarMap){
@@ -83,6 +119,8 @@ class flightControls{
             display_probeControls(buttonSet.get(0).relatedProbe);}
         if(screen_probeLaunch){
             display_probeLaunch();}
+        if(screen_outpostMining){
+            display_outpostMining();}
         display_buttonBounds();
     }
     void calc(){
@@ -105,17 +143,41 @@ class flightControls{
     }
     void display_selection(){
         display_probeSet();
+        display_outpostSet();
         display_probeScroller();
+        display_launchButton();
+    }
+    void display_launchButton(){
+        pushStyle();
+        fill(90,90,90);
+        noStroke();
+        ellipse(launchButton_pos.x +launchButton_dim.x/2.0, launchButton_pos.y +launchButton_dim.y/2.0, launchButton_dim.x, launchButton_dim.y);
+        popStyle();
     }
     void display_probeSet(){
         /*
         Shows all current probes, as well as recently destroyed probes (which 
         can be dismissed to remove them from the list)
         */
-        for(int i=0; i<probeCell_cellNumber; i++){
+        for(int i=0; i<cellNumber; i++){
             int givenProbeInd = i +probeSetIndOffset;
             if(givenProbeInd < probeCellSet.size()){
                 probeCellSet.get(givenProbeInd).display();
+            }
+            else{
+                break;
+            }
+        }
+    }
+    void display_outpostSet(){
+        /*
+        Shows all current probes, as well as recently destroyed probes (which 
+        can be dismissed to remove them from the list)
+        */
+        for(int i=0; i<cellNumber; i++){
+            int givenOutpostInd = i +outpostSetIndOffset;
+            if(givenOutpostInd < outpostCellSet.size()){
+                outpostCellSet.get(givenOutpostInd).display();
             }
             else{
                 break;
@@ -266,12 +328,70 @@ class flightControls{
     }
     void display_probeLaunch(){
         display_probeAngularLaunchDisp();
+        display_launchReleaseButton();
         display_backButton();
     }
     void display_probeAngularLaunchDisp(){
+        angSelector.display(angSelector_pos, angSelector_dim);
+    }
+    void display_launchReleaseButton(){
         pushStyle();
-        textSize(40);
-        text("Ang screen", panelDim.x/2.0, panelDim.y/2.0);
+        rectMode(CORNER);
+        stroke(30,30,30);
+        strokeWeight(2);
+        fill(70,70,70);
+        rect(launchRelease_pos.x, launchRelease_pos.y, launchRelease_dim.x, launchRelease_dim.y);
+        popStyle();
+    }
+    void display_outpostMining(){
+        display_drillContinue();
+        display_drillStop();
+        display_mineralTanks();
+        display_audioQuick();
+        display_mineralQuick();
+        display_backButton();
+    }
+    void display_drillContinue(){
+        pushStyle();
+        rectMode(CORNER);
+        stroke(30,30,30);
+        strokeWeight(2);
+        fill(70,70,70);
+        rect(drillContinue_pos.x, drillContinue_pos.y, drillContinue_dim.x, drillContinue_dim.y);
+        popStyle();
+    }
+    void display_drillStop(){
+        pushStyle();
+        rectMode(CORNER);
+        stroke(30,30,30);
+        strokeWeight(2);
+        fill(70,70,70);
+        rect(drillStop_pos.x, drillStop_pos.y, drillStop_dim.x, drillStop_dim.y);
+        popStyle();
+    }
+    void display_mineralTanks(){
+        pushStyle();
+        rectMode(CORNER);
+        stroke(30,30,30);
+        strokeWeight(2);
+        fill(70,70,70);
+        rect(mineralTank_pos.x, mineralTank_pos.y, mineralTank_dim.x, mineralTank_dim.y);
+        popStyle();
+    }
+    void display_audioQuick(){
+        pushStyle();
+        stroke(30,30,30);
+        strokeWeight(2);
+        fill(70,70,70);
+        ellipse(audioQuick_pos.x +audioQuick_dim.x/2.0, audioQuick_pos.y +audioQuick_dim.y/2.0, audioQuick_dim.x, audioQuick_dim.y);
+        popStyle();
+    }
+    void display_mineralQuick(){
+        pushStyle();
+        stroke(30,30,30);
+        strokeWeight(2);
+        fill(70,70,70);
+        ellipse(mineralQuick_pos.x +mineralQuick_dim.x/2.0, mineralQuick_pos.y +mineralQuick_dim.y/2.0, mineralQuick_dim.x, mineralQuick_dim.y);
         popStyle();
     }
     //##BUG FIXING##
@@ -283,7 +403,7 @@ class flightControls{
     //##BUG FIXING##
 
 
-    void generateProbeCellSet(ArrayList<probe> probes){
+    void generateCellSet(ArrayList<probe> probes, ArrayList<probe> destroyed_probes, ArrayList<outpost> outposts, ArrayList<outpost> destroyed_outposts){
         /*
         Generate the set of cells for probes, from each probe
         Should be re-run if;
@@ -291,18 +411,65 @@ class flightControls{
         .Probes destroyed
         .List is scrolled
         */
+        probeCellSet.clear();
+        generateProbeCellSet(probes, destroyed_probes);          // These can also be run indiviudally if only certain sets are changed too
+        generateOutpostCellSet(outposts, destroyed_outposts);    //
+    }
+    void generateProbeCellSet(ArrayList<probe> probes, ArrayList<probe> destroyed_probes){
         float leftBorder = 5.0;                                                     //Distance cells start from the left side of the panel
         float border     = 10.0;                                                    //Space between cells
-        float cellHeight = (panelDim.y -(probeCell_cellNumber+1)*border) / (probeCell_cellNumber);      //The height of each box containing probe info
+        float cellHeight = (panelDim.y -(cellNumber+1)*border) / (cellNumber);      //The height of each box containing probe info
         float sizeOfText = cellHeight/2.0;
         float sizeOfIcon = cellHeight/3.0;
         PVector startPos = new PVector(cornerPos.x +leftBorder, cornerPos.y);   //Coord for starting the drawing of cells
         probeCellSet.clear();
+        //Alive
         for(int i=0; i<probes.size(); i++){
             PVector relPos = new PVector(startPos.x, startPos.y +cellHeight*(i-probeSetIndOffset) +border*(i-probeSetIndOffset+1));
-            float cellWidth = panelDim.x/2.0;                                   //Changes depending on info amount
-            probeDispCell newProbeCell = new probeDispCell(probes.get(i), sizeOfText, sizeOfIcon, new PVector(relPos.x, relPos.y), new PVector(cellWidth, cellHeight));
-            probeCellSet.add(newProbeCell);
+            float cellWidth = panelDim.x/4.0;                                   //Changes depending on info amount
+            dispCell newCell = new dispCell(sizeOfText, sizeOfIcon, new PVector(relPos.x, relPos.y), new PVector(cellWidth, cellHeight));
+            newCell.cProbe = probes.get(i);
+            newCell.initialise();
+            probeCellSet.add(newCell);
+        }
+        //Destroyed
+        for(int j=0; j<destroyed_probes.size(); j++){
+            int i = j +cManager.cSolarMap.probes.size();
+            PVector relPos = new PVector(startPos.x, startPos.y +cellHeight*(i-probeSetIndOffset) +border*(i-probeSetIndOffset+1));
+            float cellWidth = panelDim.x/4.0;                                   //Changes depending on info amount
+            dispCell newCell = new dispCell(sizeOfText, sizeOfIcon, new PVector(relPos.x, relPos.y), new PVector(cellWidth, cellHeight));
+            newCell.cProbe = destroyed_probes.get(j);
+            newCell.initialise();
+            probeCellSet.add(newCell);
+        }
+    }
+    void generateOutpostCellSet(ArrayList<outpost> outposts, ArrayList<outpost> destroyed_outposts){
+        float outpostOffset = 0.3*panelDim.x;
+        float leftBorder = 5.0;                                                     //Distance cells start from the left side of the panel
+        float border     = 10.0;                                                    //Space between cells
+        float cellHeight = (panelDim.y -(cellNumber+1)*border) / (cellNumber);      //The height of each box containing probe info
+        float sizeOfText = cellHeight/2.0;
+        float sizeOfIcon = cellHeight/3.0;
+        PVector startPos = new PVector(cornerPos.x +leftBorder +outpostOffset, cornerPos.y);   //Coord for starting the drawing of cells
+        outpostCellSet.clear();
+        //Alive
+        for(int i=0; i<outposts.size(); i++){
+            PVector relPos = new PVector(startPos.x, startPos.y +cellHeight*(i-outpostSetIndOffset) +border*(i-outpostSetIndOffset+1));
+            float cellWidth = panelDim.x/4.0;                                   //Changes depending on info amount
+            dispCell newCell = new dispCell(sizeOfText, sizeOfIcon, new PVector(relPos.x, relPos.y), new PVector(cellWidth, cellHeight));
+            newCell.cOutpost = outposts.get(i);
+            newCell.initialise();
+            outpostCellSet.add(newCell);
+        }
+        //Destroyed
+        for(int j=0; j<destroyed_outposts.size(); j++){
+            int i = j + cManager.cSolarMap.outposts.size();
+            PVector relPos = new PVector(startPos.x, startPos.y +cellHeight*(i-probeSetIndOffset) +border*(i-probeSetIndOffset+1));
+            float cellWidth = panelDim.x/4.0;                                   //Changes depending on info amount
+            dispCell newCell = new dispCell(sizeOfText, sizeOfIcon, new PVector(relPos.x, relPos.y), new PVector(cellWidth, cellHeight));
+            newCell.cOutpost = destroyed_outposts.get(j);
+            newCell.initialise();
+            outpostCellSet.add(newCell);
         }
     }
 
@@ -315,7 +482,7 @@ class flightControls{
         */
         probe newProbe = new probe( new PVector(launchLoc.x, launchLoc.y), new PVector(speed*cos(theta), speed*sin(theta)), new PVector(0,0) );   //In AU units
         probes.add(newProbe);
-        generateProbeCellSet(cManager.cSolarMap.probes);
+        generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
     }
 
 
@@ -324,13 +491,44 @@ class flightControls{
         Loads buttons for the given screen, this has;
         . All probes listed, clickable
         . Button to launch new probes, clickable
+
+        ####
+        ## MOVE PROBE AND OUTPOST BUTTON LOA=DING INTO ANOTHER FUNCTION TO CLEAN UP
+        ####
         */
         buttonSet.clear();
-        for(int i=probeSetIndOffset; i<probeSetIndOffset +probeCell_cellNumber; i++){
+        //Probes
+        for(int i=probeSetIndOffset; i<probeSetIndOffset +cellNumber; i++){
             if(i < probeCellSet.size()){   //If valid
-                button newButton = new button(probeCellSet.get(i).pos, probeCellSet.get(i).dim, "rect", "flight_probe_goToControls");
-                newButton.relatedProbe = probeCellSet.get(i).cProbe;
-                buttonSet.add(newButton);
+                if(i < cManager.cSolarMap.probes.size()){
+                    //For ALIVE probes
+                    button newButton = new button(probeCellSet.get(i).pos, probeCellSet.get(i).dim, "rect", "flight_probe_goToControls");
+                    newButton.relatedProbe = probeCellSet.get(i).cProbe;
+                    buttonSet.add(newButton);
+                }
+                else{
+                    //For DESTROYED probes
+                    button newButton = new button(probeCellSet.get(i).pos, probeCellSet.get(i).dim, "rect", "flight_probe_dismissDestroyed");
+                    newButton.relatedProbe = probeCellSet.get(i).cProbe;
+                    buttonSet.add(newButton);
+                }
+            }
+        }
+        //Outposts
+        for(int i=outpostSetIndOffset; i<outpostSetIndOffset +cellNumber; i++){
+            if(i < outpostCellSet.size()){   //If valid
+                if(i < cManager.cSolarMap.outposts.size()){
+                    //For ALIVE probes
+                    button newButton = new button(outpostCellSet.get(i).pos, outpostCellSet.get(i).dim, "rect", "flight_outpost_goToMining");
+                    newButton.relatedOutpost = outpostCellSet.get(i).cOutpost;
+                    buttonSet.add(newButton);
+                }
+                else{
+                    //For DESTROYED probes
+                    button newButton = new button(outpostCellSet.get(i).pos, outpostCellSet.get(i).dim, "rect", "flight_outpost_dismissDestroyed");
+                    newButton.relatedOutpost = outpostCellSet.get(i).cOutpost;
+                    buttonSet.add(newButton);
+                }
             }
         }
         button newButton0 = new button( scroller_pos, scroller_dim, "circ", "flight_incrementProbeIndOffset");
@@ -364,14 +562,32 @@ class flightControls{
         button newButton0 = new button(backButton_pos, backButton_dim, "rect", "flight_goToSelection");
         buttonSet.add(newButton0);
     }
+    void loadButtons_screen_outpostMining(){
+        /*
+        Loads buttons for the given screen, this has;
+        . Launch direction controls, interactive
+        . Launch velocity slider, interactive
+        . Back button (to selection), clickable
+        */
+        buttonSet.clear();
+        button newButton0 = new button(drillContinue_pos, drillContinue_dim , "rect", "flight_outpost_mining_drillContinue");
+        button newButton1 = new button(drillStop_pos    , drillStop_dim     , "rect", "flight_outpost_mining_drillStop");
+        button newButton2 = new button(mineralTank_pos  , mineralTank_dim   , "rect", "flight_outpost_mining_mineralTankInfoReveal");
+        button newButton3 = new button(audioQuick_pos   , audioQuick_dim    , "circ", "flight_outpost_mining_audioQuick");
+        button newButton4 = new button(mineralQuick_pos , mineralQuick_dim  , "circ", "flight_outpost_mining_mineralQuick");
+        button newButton5 = new button(backButton_pos   , backButton_dim    , "rect", "flight_goToSelection");
+        buttonSet.add(newButton0);buttonSet.add(newButton1);buttonSet.add(newButton2);buttonSet.add(newButton3);buttonSet.add(newButton4);buttonSet.add(newButton5);
+    }
 }
 
-class probeDispCell{
+class dispCell{
     /*
     Contains all relevent information to display a cell in the probe list 
     for a specific cell
     */
-    probe cProbe;
+    probe cProbe     = null;    //Initialise when created
+    outpost cOutpost = null;
+
     PVector pos;    //Corner position
     PVector dim;
 
@@ -380,16 +596,27 @@ class probeDispCell{
 
     float sizeOfIcon;
 
-    probeDispCell(probe cProbe, float sizeOfText, float sizeOfIcon, PVector pos, PVector dim){
-        this.cProbe = cProbe;
+    dispCell(float sizeOfText, float sizeOfIcon, PVector pos, PVector dim){
         this.pos    = pos;
         this.dim    = dim;
         this.sizeOfText = sizeOfText;
         this.sizeOfIcon = sizeOfIcon;
 
-        infoText = str(cProbe.ID);
+        infoText = "";
     }
 
+    void initialise(){
+        /*
+        For initialising AFTER the probe/oupost/... is given to it after its initial creation
+        */
+        generate_infoText();
+    }
+    void generate_infoText(){
+        if(cProbe != null){
+            infoText = str(cProbe.ID);}
+        if(cOutpost != null){
+            infoText = str(cOutpost.ID);}
+    }
     void display(){
         /*
         IndNumber used to specify which location this cell appears in in the list
@@ -409,18 +636,22 @@ class probeDispCell{
         text(infoText, pos.x, pos.y +sizeOfText);
 
         //Status icon
-        fill(20,255,20);
+        fill(0,0,0);    //**Bug fixer basically
+        if(cProbe != null){
+            fill(cProbe.statusCol.x, cProbe.statusCol.y, cProbe.statusCol.z);}
+        if(cOutpost != null){
+            fill(cOutpost.statusCol.x, cOutpost.statusCol.y, cOutpost.statusCol.z);}
         ellipse(pos.x +sizeOfIcon/2.0, pos.y +sizeOfIcon/2.0, sizeOfIcon, sizeOfIcon);
         popStyle();
     }
 }
 
-
 /*
-######################################
+###
+DUPLICATE LIKELY FROM DISCEPANCY BETWEEN 
+SET OF PROBES AND THE DISPCELL SET
 ##
-## NEED TO RETRIEVE PROBE INFO FROM THE BUTTON WHEN CLICKED -> NEEDS SPECIFICITY
-##      MAYBE HAVE PARSED AS AN ARGUEMENT ???
-##
-######################################
+
+
+--> NO, IS FROM DESTROYED PROBES NOT STARTING AT THE END OF PROBES
 */

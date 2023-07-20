@@ -21,7 +21,9 @@ class manager{
         cStockRecords.display();
         cToolArray.display();
 
-        cSolarMap.display( new PVector(width/2.0, height/2.0) );   //### For Bug-Fixing ###
+        cSolarMap.display( new PVector(width/2.0, height/2.0) );    //### For Bug-Fixing ###
+        if(cSolarMap.outposts.size() > 0){                          //
+            cSolarMap.outposts.get(0).displayTargets();}            //
     }
     void calc(){
         calc_probeMotion(cSolarMap.probes);
@@ -55,6 +57,7 @@ class manager{
         //## SHOULD PROBABLY DO ALL POSITION CHANGES AT THE END, BUT FOR PROBES IS LARGELY IRRELEVENT AS THEY ARE TINY
         for(int i=0; i<probes.size(); i++){
             probes.get(i).calcDynamics();
+            probes.get(i).checkForLanding(cSolarMap);    //## MAKE EVERY X FRAMES TO REDUCE LAG ##
         }
     }
 

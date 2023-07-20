@@ -13,7 +13,8 @@ class button{
     PVector dim;    //Full width and height
 
     //Specifics -> Add more variables as more specifics are required
-    probe relatedProbe;     //Used to refer to specifics for THIS button
+    probe relatedProbe     = null; //Used to refer to specifics for THIS button
+    outpost relatedOutpost = null; //
 
     button(PVector pos, PVector dim, String shapeType, String buttonType){
         this.pos = pos;
@@ -53,25 +54,53 @@ class button{
             cManager.cFlightControls.screen_selection     = false;  //Change booleans
             cManager.cFlightControls.screen_probeControls = true;   //
             cManager.cFlightControls.screen_probeLaunch   = false;  //
+            cManager.cFlightControls.screen_outpostMining = false;  //
             cManager.cFlightControls.loadButtons_screen_probeControls(relatedProbe);    //Load relevent buttons
+        }
+        if(buttonType == "flight_probe_dismissDestroyed"){
+            //######################################################################
+            //## MAYBE TAKE YOU TO A SCREEN TO SEE A REPORT ON HOW THE PROBE DIED ##
+            //######################################################################
+            cManager.cSolarMap.dismissProbe(relatedProbe);
+            cManager.cFlightControls.generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
+            cManager.cFlightControls.loadButtons_screen_selection();    //## MAYBE KEEP, MAYBE REMOVE
+        }
+        if(buttonType == "flight_outpost_goToMining"){
+            cManager.cFlightControls.screen_selection     = false;  //Change booleans
+            cManager.cFlightControls.screen_probeControls = false;  //
+            cManager.cFlightControls.screen_probeLaunch   = false;  //
+            cManager.cFlightControls.screen_outpostMining = true;   //
+            cManager.cFlightControls.loadButtons_screen_outpostMining();    //Load relevent buttons
+        }
+        if(buttonType == "flight_outpost_dismissDestroyed"){
+            //pass
         }
         if(buttonType == "flight_goToLaunch"){
             cManager.cFlightControls.screen_selection     = false;  //Change booleans
             cManager.cFlightControls.screen_probeControls = false;  //
             cManager.cFlightControls.screen_probeLaunch   = true;   //
+            cManager.cFlightControls.screen_outpostMining = false;  //
             cManager.cFlightControls.loadButtons_screen_probeLaunch();    //Load relevent buttons
         }
         if(buttonType == "flight_goToSelection"){
             cManager.cFlightControls.screen_selection     = true;  //Change booleans
             cManager.cFlightControls.screen_probeControls = false; //
             cManager.cFlightControls.screen_probeLaunch   = false; //
+            cManager.cFlightControls.screen_outpostMining = false;  //
             cManager.cFlightControls.loadButtons_screen_selection();    //Load relevent buttons
         }
         if(buttonType == "flight_incrementProbeIndOffset"){
             cManager.cFlightControls.probeSetIndOffset++;
-            if(cManager.cFlightControls.probeSetIndOffset >= cManager.cSolarMap.probes.size()){
+            if(cManager.cFlightControls.probeSetIndOffset >= cManager.cSolarMap.probes.size() +cManager.cSolarMap.destroyed_probes.size()){
                 cManager.cFlightControls.probeSetIndOffset = 0;}
-            cManager.cFlightControls.generateProbeCellSet(cManager.cSolarMap.probes);
+            cManager.cFlightControls.generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
+            cManager.cFlightControls.loadButtons_screen_selection();
+        }
+        if(buttonType == "flight_incrementOutpostIndOffset"){
+            cManager.cFlightControls.outpostSetIndOffset++;
+            if(cManager.cFlightControls.outpostSetIndOffset >= cManager.cSolarMap.outposts.size() +cManager.cSolarMap.destroyed_outposts.size()){
+                cManager.cFlightControls.outpostSetIndOffset = 0;}
+            cManager.cFlightControls.generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
             cManager.cFlightControls.loadButtons_screen_selection();
         }
         if(buttonType == "flight_changeSensorDataType"){
@@ -104,6 +133,21 @@ class button{
             PVector dir = vec_unitVec(relatedProbe.vel);    //## CHANGE TO BE A DIRECTION IT IS FACING, HELD SEPARATELY, ROATATES ##
             relatedProbe.vel.x -= thrust*dir.x;
             relatedProbe.vel.y -= thrust*dir.x;
+        }
+        if(buttonType == "flight_outpost_mining_drillContinue"){
+            //pass
+        }
+        if(buttonType == "flight_outpost_mining_drillStop"){
+            //pass
+        }
+        if(buttonType == "flight_outpost_mining_mineralTankInfoReveal"){
+            //pass
+        }
+        if(buttonType == "flight_outpost_mining_audioQuick"){
+            //pass
+        }
+        if(buttonType == "flight_outpost_mining_mineralQuick"){
+            //pass
         }
         if(buttonType == "tools_goToSettings"){
             cManager.cToolArray.screen_selection    = false;  //Change booleans

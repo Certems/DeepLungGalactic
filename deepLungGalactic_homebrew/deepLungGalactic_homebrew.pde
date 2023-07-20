@@ -21,15 +21,16 @@ void keyPressed(){
         cManager.cFlightControls.probeSetIndOffset++;
         if(cManager.cFlightControls.probeSetIndOffset >= cManager.cSolarMap.probes.size()){
             cManager.cFlightControls.probeSetIndOffset = 0;}
-        cManager.cFlightControls.generateProbeCellSet(cManager.cSolarMap.probes);
+        cManager.cFlightControls.generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
         cManager.cFlightControls.loadButtons_screen_selection();
     }
     if(key == '3'){
         println("generate new cells...");
-        cManager.cFlightControls.generateProbeCellSet(cManager.cSolarMap.probes);
+        cManager.cFlightControls.generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
     }
     if(key == '4'){
         println("loading flight AND tool AND stocks sel buttons...");
+        cManager.cFlightControls.generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
         cManager.cFlightControls.loadButtons_screen_selection();
         cManager.cToolArray.loadButtons_screen_selection();
         cManager.cStockRecords.loadButtons_screen_selection();
@@ -50,6 +51,18 @@ void keyPressed(){
             cManager.cStockRecords.invIndOffset = 0;}
         cManager.cStockRecords.loadButtons_screen_selection();
     }
+    if(key == '9'){
+        println("Destroy 0th probe...");
+        cManager.cSolarMap.destroyProbe( cManager.cSolarMap.probes.get(0) );
+        cManager.cFlightControls.generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
+        cManager.cFlightControls.loadButtons_screen_selection();
+    }
+    if(key == '0'){
+        println("Dismiss 0th destr. probe...");
+        cManager.cSolarMap.dismissProbe( cManager.cSolarMap.destroyed_probes.get(0) );
+        cManager.cFlightControls.generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
+        cManager.cFlightControls.loadButtons_screen_selection();
+    }
 }
 void mousePressed(){
     cManager.manager_mousePressed();
@@ -60,6 +73,7 @@ void mouseReleased(){
 
 /*
 Notes & TODO;
+. Scroller as a rect under the sections with an arrow pointing down --> HOWEVER MAY MEAN FINGERS GET IN THE WAY
 . Analogue displays, tick every X seconds for refresh rate
 . Compose-esc displays -> only redraw if needed
 . 2.0 * RADIUS FOR ELLIPSES
@@ -74,6 +88,7 @@ Notes & TODO;
 .##### MAYBE CONVERT THE DISTANCE LINE SENSOR TO AN ASCII VERSION ###########
 .    Have stock items be split in 3 sections {| BUY |  SEE GRAPH  | SELL |}
 .    Have running total of what is ADDED to total and what is TAKEN from total before confirming a purchase
+. Special caches floating in space that create beeping sounds -> offer cool rewards, hard to find --> [Skins maybe]
 . ...
 
 1. Generate bodies of random size
