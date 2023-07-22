@@ -8,6 +8,7 @@ void setup(){
     initMineralDict();
 }
 void draw(){
+    findMouseAngle(new PVector(width/2.0, height/2.0));
     cManager.display();
     cManager.calc();
 }
@@ -47,7 +48,7 @@ void keyPressed(){
     if(key == '8'){
         println("Increment offsetInd AND generate new cells...");
         cManager.cStockRecords.invIndOffset++;
-        if(cManager.cStockRecords.invIndOffset >= cManager.cStockRecords.shipInventory.size()){
+        if(cManager.cStockRecords.invIndOffset >= cManager.cStockRecords.ship_inventory.size()){
             cManager.cStockRecords.invIndOffset = 0;}
         cManager.cStockRecords.loadButtons_screen_selection();
     }

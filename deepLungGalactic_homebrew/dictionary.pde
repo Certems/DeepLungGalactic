@@ -1,3 +1,8 @@
+/*
+########################################
+## StringDict essentially useless now ##
+########################################
+*/
 class stringDictionary{
     /*
     Custom dictinary, bit easier to pull values from it

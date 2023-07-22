@@ -40,13 +40,13 @@ class outpost{
             for(int i=0; i<linkedBody.mineralSet.get(j).size(); i++){
                 if(linkedBody.mineralSet.get(j).get(i) != null){
                     fill(255,255,255);
-                    ellipse(odeSize*i, nodeSize*j, nodeSize, nodeSize);
+                    ellipse(nodeSize*i, nodeSize*j, nodeSize, nodeSize);
                 }
             }
         }
-        for(int i=0; i<drillTarget.size(); i++){
+        for(int i=0; i<drillTargets.size(); i++){
             fill(255,100,100);
-            ellipse(nodeSize*drillTarget.get(i).x, nodeSize*drillTarget.get(i).y, nodeSize, nodeSize);
+            ellipse(nodeSize*drillTargets.get(i).x, nodeSize*drillTargets.get(i).y, nodeSize, nodeSize);
         }
         popStyle();
     }
@@ -69,6 +69,7 @@ class outpost{
         4. Now order the minerals (by distance from centres should be enough)
         5. Add to the drillTarget list
         */
+        /*
         drillTargets.clear();
         ArrayList<PVector> drillTargetBuffer = new ArrayList<PVector>();
         //1
@@ -77,10 +78,11 @@ class outpost{
             for(int i=0; i<linkedBody.mineralSet.get(j).size(); i++){
                 if(linkedBody.mineralSet.get(j).get(i) != null){
                     //2
-                    PVector p1 = new PVector(); //Top-Left, Going around CW
-                    PVector p2 = new PVector();
-                    PVector p3 = new PVector();
-                    PVector p4 = new PVector();
+                    PVector centrePos = new PVector((i+0.5)*linkedBody.mineralCellWidth/2.0, (j+0.5)*linkedBody.mineralCellWidth/2.0);      //For the given tile
+                    PVector p1 = new PVector(centrePos.x -linkedBody.mineralCellWidth/2.0, centrePos.y -linkedBody.mineralCellWidth/2.0);   //Top-Left, Going around CW
+                    PVector p2 = new PVector(centrePos.x +linkedBody.mineralCellWidth/2.0, centrePos.y -linkedBody.mineralCellWidth/2.0);
+                    PVector p3 = new PVector(centrePos.x +linkedBody.mineralCellWidth/2.0, centrePos.y +linkedBody.mineralCellWidth/2.0);
+                    PVector p4 = new PVector(centrePos.x -linkedBody.mineralCellWidth/2.0, centrePos.y +linkedBody.mineralCellWidth/2.0);
                     //Top
                     if( checkLineLineCollision(p1, p2, pos, drillPoint) ){
                         collisionOccurs = true;}
@@ -103,11 +105,11 @@ class outpost{
         //4
         ArrayList<Float> distBuffer = new ArrayList<Float>();
         for(int i=0; i<drillTargetBuffer.size(); i++){
-            float dist = .. at j;
+            float dist = vec_mag(vec_dir(pos, drillTargetBuffer.get(i)));   //**Note uses random relative system, not actual units in AU or pixels
             boolean isSorted = false;
             for(int j=0; j<distBuffer.size(); j++){             //Add to list in correct place (smallest to largest)
-                if(dist < ... at distBuffer.get(j)){                   //
-                    distBuffer.add(j, j);                    //
+                if(dist < vec_mag(vec_dir(pos, drillTargetBuffer.get(distBuffer.get(j)))) ){
+                    distBuffer.add(j, distBuffer.get(j));       //
                     isSorted = true;                            //
                     break;                                      //
                 }                                               //
@@ -116,9 +118,10 @@ class outpost{
                 distBuffer.add(dist);}      //
         }
         //5
-        for(int i=0; i<distBuffer){
+        for(int i=0; i<distBuffer.size(); i++){
             drillTarget.add( drillTargetBuffer.get(distBuffer.get(i)) );
         }
+        */
     }
     void drillStep(){
         /*

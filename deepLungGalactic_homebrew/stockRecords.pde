@@ -20,8 +20,11 @@ class stockRecords{
     PVector cornerPos;  //Top-Left corner defining the origin from which items in this panel are drawn
     PVector panelDim;   //The dimensions of this panel, which must contain all the panel's information
 
-    stringDictionary shipInventory;
+    float moneyOwned = 100.0;
+    ArrayList<item> staged_items = new ArrayList<item>();
+    ArrayList<item> ship_inventory = new ArrayList<item>();
     int invIndOffset = 0;
+
     float inv_leftBorder;
     float inv_border;
     float inv_cellNumber;
@@ -79,9 +82,9 @@ class stockRecords{
         Shows all resources avaialble, how much of each you own and how much 
         each can be sold and brought for
         */
-        for(int i=0; i<shipInventory.size(); i++){
+        for(int i=0; i<ship_inventory.size(); i++){
             int givenInvInd = i+invIndOffset;
-            if(givenInvInd < shipInventory.size()){
+            if(givenInvInd < ship_inventory.size()){
                 pushStyle();
                 fill(80,80,80,180);
                 noStroke();
@@ -91,10 +94,10 @@ class stockRecords{
                 fill(255,255,255);
                 textAlign(LEFT,CENTER);
                 textSize(inv_sizeOfText);
-                String infoText_name  = shipInventory.keys.get(givenInvInd);
-                String infoText_value = str(shipInventory.values.get(givenInvInd));
+                String infoText_name  = ship_inventory.get(givenInvInd).name;
+                String infoText_value = str(ship_inventory.get(givenInvInd).quantity);
                 boolean onLastLine = (i == int(inv_cellNumber)-1);
-                boolean moreInvRemaining = (shipInventory.size()-1 > givenInvInd);
+                boolean moreInvRemaining = (ship_inventory.size()-1 > givenInvInd);
                 if(onLastLine && moreInvRemaining){
                     infoText_name = "...";}
                 text(infoText_name,  cornerPos.x +inv_leftBorder                 ,cornerPos.y +inv_border*(i+1) +inv_dim.y*(i) +inv_sizeOfText);
@@ -178,14 +181,105 @@ class stockRecords{
 
 
     void initShipInventory(){
-        ArrayList<String> keySet  = new ArrayList<String>();
-        ArrayList<Float> valueSet = new ArrayList<Float>();
+        addItem(new item_crestulin(120.0), ship_inventory);
+        addItem(new item_traen04(23.3), ship_inventory);
+        addItem(new item_probeCore(1.0), ship_inventory);
+    }
+    void addItem(item givenItem, ArrayList<item> itemList){
+        /*
+        Adds/Removes X quantity of the given item (X is specified in the quantity supplied, which can be negative to reduce the amount)
+        Checks if item already exists
+        If it does, (1)increase its quantity, if not (2)create a new space
+        */
+        boolean itemAlreadyExists = false;
+        for(int i=0; i<itemList.size(); i++){
+            if(givenItem.name == itemList.get(i).name){
+                //1
+                itemAlreadyExists = true;
+                itemList.get(i).quantity += givenItem.quantity;
+                if(itemList.get(i).quantity <= 0){
+                    //All gone => remove space
+                    itemList.remove(i);
+                }
+                break;
+            }
+        }
+        if( (!itemAlreadyExists) && (givenItem.quantity > 0) ){
+            itemList.add(givenItem);
+        }
+    }
+    void stageItem(item givenItem){
+        /*
+        Prepares the item to be brought or sold
+        If possible, when committed, all staged items will be brought and sold
 
-        keySet.add("Crestulin");keySet.add("Forbicite");keySet.add("Traen-04"); keySet.add("Grain Powder"); keySet.add("Octo-Dilitic");keySet.add("Crestulin");keySet.add("Forbicite");keySet.add("Traen-04"); keySet.add("Grain Powder"); keySet.add("Octo-Dilitic");
-        valueSet.add(100.0);    valueSet.add(100.0);    valueSet.add(100.0);    valueSet.add(100.0);        valueSet.add(100.0);       valueSet.add(100.0);    valueSet.add(100.0);    valueSet.add(100.0);    valueSet.add(100.0);        valueSet.add(100.0);
-        //...
+        +ve => Wants to BUY FROM COMPANY
+        -ve => Wants to SELL OWNED
+        */
+        addItem(givenItem, staged_items);
+    }
+    void commitStaged(){
+        /*
+        Will attempt to buy/sell all staged items and finalise the agreement
 
-        shipInventory = new stringDictionary(keySet, valueSet);
+        1.   Find total cost
+        2.1. Verify you can pay cost
+        2.2. Verify you have the items available for the transaction
+        3.   Adjust money, adjust inventory, empty staged
+        */
+        boolean hasAllItems = true;
+        //1
+        float totalCost = calcTotalCost(staged_items);
+        //2.1
+        boolean canAfford = (moneyOwned >= totalCost);
+        if(canAfford){
+            //2.2
+            //For each item staged
+            for(int i=0; i<staged_items.size(); i++){
+                boolean enoughOfGiven = false;
+                //Check all items currently held
+                for(int j=0; j<ship_inventory.size(); j++){
+                    //If is the needed item
+                    if(staged_items.get(i).name == ship_inventory.get(j).name){
+                        //If there is enough of this item
+                        if(ship_inventory.get(j).quantity +staged_items.get(i).quantity >= 0){
+                            enoughOfGiven = true;
+                            break;
+                        }
+                    }
+                }
+                if(!enoughOfGiven){
+                    hasAllItems = false;
+                    break;
+                }
+            }
+        }
+        if(canAfford && hasAllItems){
+            //SUCCESSFULLY committed
+            //3
+            //Money
+            moneyOwned -= totalCost;
+            //Items
+            for(int i=0; i<staged_items.size(); i++){
+                for(int j=0; j<ship_inventory.size(); j++){
+                    if(ship_inventory.get(j).name == staged_items.get(i).name){
+                        ship_inventory.get(j).quantity += staged_items.get(i).quantity;
+                        break;
+                    }
+                }
+            }
+            //Staged
+            staged_items.clear();
+        }
+        else{
+            //FAILED to commit
+            println("Commit failed");
+        }
+    }
+    float calcTotalCost(ArrayList<item> itemList){
+        //pass
+
+        //## HOW SHOULD THE MONEY SIDE WORK -> WHERE SHOULD IT PULL FROM ??????????????x
     }
 
 
@@ -193,9 +287,12 @@ class stockRecords{
         buttonSet.clear();
         for(int i=0; i<inv_cellNumber; i++){
             int givenInd = invIndOffset +i;
-            if(givenInd < shipInventory.size()){   //If valid
-                button newButton = new button( new PVector(cornerPos.x +inv_leftBorder, cornerPos.y +i*inv_dim.y +(i+1)*inv_border), inv_dim, "rect", "stocks_goToStockGraph");
-                buttonSet.add(newButton);
+            if(givenInd < ship_inventory.size()){   //If valid
+                button newButton1 = new button( new PVector(cornerPos.x +inv_leftBorder                   , cornerPos.y +i*inv_dim.y +(i+1)*inv_border), new PVector(inv_dim.x/3.0, invDim.y), "rect", "stocks_buyItem");
+                button newButton2 = new button( new PVector(cornerPos.x +inv_leftBorder +    inv_dim.x/3.0, cornerPos.y +i*inv_dim.y +(i+1)*inv_border), new PVector(inv_dim.x/3.0, invDim.y), "rect", "stocks_goToStockGraph");
+                button newButton3 = new button( new PVector(cornerPos.x +inv_leftBorder +2.0*inv_dim.x/3.0, cornerPos.y +i*inv_dim.y +(i+1)*inv_border), new PVector(inv_dim.x/3.0, invDim.y), "rect", "stocks_sellItem");
+                newButton1.relatedItem = ship_inventory.get(i);newButton2.relatedItem = ship_inventory.get(i);newButton3.relatedItem = ship_inventory.get(i);
+                buttonSet.add(newButton1);buttonSet.add(newButton2);buttonSet.add(newButton3);
             }
         }
         button newButton0 = new button( scroller_pos, scroller_dim, "circ", "stocks_incrementInvIndOffset");
@@ -206,4 +303,66 @@ class stockRecords{
         button newButton0 = new button(backButton_pos, backButton_dim, "rect", "stocks_goToSelection");
         buttonSet.add(newButton0);
     }
+}
+
+
+class item{
+    /*
+    The ship has an inventory, holding items
+    Minerals mining and collected must be converted to items
+
+    Items detailed;
+    - Type
+    - Quantity
+    - Info text
+    - ...
+    */
+    String name;
+    float quantity;
+
+    item(float quantity){
+        this.quantity = quantity;
+    }
+
+    //pass
+}
+class item_crestulin extends item{
+    //pass
+
+    item_crestulin(float quantity){
+        super(quantity);
+        name = "crestulin";
+    }
+
+    //pass
+}
+class item_forbicite extends item{
+    //pass
+
+    item_forbicite(float quantity){
+        super(quantity);
+        name = "forbicite";
+    }
+
+    //pass
+}
+class item_traen04 extends item{
+    //pass
+
+    item_traen04(float quantity){
+        super(quantity);
+        name = "traen04";
+    }
+
+    //pass
+}
+class item_probeCore extends item{
+    //pass
+
+    item_probeCore(float quantity){
+        super(quantity);
+        name = "probeCore";
+    }
+
+    //pass
 }

@@ -32,6 +32,8 @@ class toolArray{
     PVector back_dim;
     PVector back_pos;
 
+    cartography_main_wheel wheel_main;
+
     toolArray(PVector cornerPos, PVector panelDim){
         this.cornerPos = cornerPos;
         this.panelDim  = panelDim;
@@ -44,6 +46,8 @@ class toolArray{
         radio_pos = new PVector(cornerPos.x +panelDim.x/2.0 -radio_dim.x/2.0, cornerPos.y +0.8*panelDim.y -radio_dim.y/2.0);
         back_dim = new PVector(panelDim.x/6.0, panelDim.y/8.0);
         back_pos = new PVector(cornerPos.x +0.75*panelDim.x, cornerPos.y +0.75*panelDim.y);
+
+        wheel_main = new cartography_main_wheel( new PVector(cornerPos.x +panelDim.x/2.0, cornerPos.y +panelDim.y/2.0), 0.4*panelDim.y );
     }
 
     void display(){
@@ -132,9 +136,12 @@ class toolArray{
         popStyle();
     }
     void display_cartographer(){
-        display_PLACEHOLDER();
+        display_wheel_main();
         display_backIcon();
         //...
+    }
+    void display_wheel_main(){
+        wheel_main.display();
     }
     void display_PLACEHOLDER(){
         pushStyle();

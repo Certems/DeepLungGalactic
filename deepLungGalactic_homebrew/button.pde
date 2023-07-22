@@ -11,10 +11,14 @@ class button{
 
     PVector pos;    //Top-left corner
     PVector dim;    //Full width and height
+    float thetaStart = 0.0; //Used for certain button types (arcs, ...)
+    float thetaStop  = 0.0; //
 
     //Specifics -> Add more variables as more specifics are required
     probe relatedProbe     = null; //Used to refer to specifics for THIS button
     outpost relatedOutpost = null; //
+    wheel relatedWheel     = null; //
+    item relatedItem       = null; //
 
     button(PVector pos, PVector dim, String shapeType, String buttonType){
         this.pos = pos;
@@ -33,18 +37,39 @@ class button{
         strokeWeight(3);
         if(shapeType == "rect"){
             rectMode(CORNER);
-            rect(pos.x, pos.y, dim.x, dim.y);}
-        else{
-            ellipse(pos.x +dim.x/2.0, pos.y +dim.y/2.0, dim.x, dim.y);}
+            rect(pos.x, pos.y, dim.x, dim.y);
+        }
+        if(shapeType == "circ"){
+            ellipse(pos.x +dim.x/2.0, pos.y +dim.y/2.0, dim.x, dim.y);
+        }
+        if(shapeType == "arc"){
+            arc(pos.x, pos.y, dim.x, dim.y, thetaStart, thetaStop);  //*Note here, dim specifies RADIUS not DIAMETER (unlike the circle)
+        }
         popStyle();
     }
     boolean inButtonRange(PVector selectPos){
         /*
         Checks if the selection position (normally mouse position) is within the button bounds
         */
-        boolean withinX = ((pos.x < selectPos.x) && (selectPos.x < pos.x +dim.x));
-        boolean withinY = ((pos.y < selectPos.y) && (selectPos.y < pos.y +dim.y));
-        return (withinX && withinY);
+        if(shapeType == "rect"){
+            boolean withinX = ((pos.x <= selectPos.x) && (selectPos.x < pos.x +dim.x));
+            boolean withinY = ((pos.y <= selectPos.y) && (selectPos.y < pos.y +dim.y));
+            return (withinX && withinY);
+        }
+        else if(shapeType == "circ"){
+            float dist = vec_mag(vec_dir(new PVector(pos.x +dim.x/2.0, pos.y +dim.y/2.0), new PVector(mouseX, mouseY)));
+            return (dist <= dim.x/2.0);
+        }
+        else if(shapeType == "arc"){
+            float dist = vec_mag(vec_dir(pos, new PVector(mouseX, mouseY)));
+            float theta= findMouseAngle(pos);
+            boolean withinRadius = (dist <= dim.x);
+            boolean withinAngle  = (thetaStart <= theta) && (theta < thetaStop);
+            return (withinRadius && withinAngle);
+        }
+        else{
+            return false;
+        }
     }
     void activate(){
         /*
@@ -181,11 +206,23 @@ class button{
             cManager.cStockRecords.screen_stockGraphs  = true;   //
             cManager.cStockRecords.loadButtons_screen_stockGraph();    //Load relevent buttons
         }
+        if(buttonType == "stocks_buyItem"){
+            cManager.cStockRecords.stageItem(relatedItem);
+        }
+        if(buttonType == "stocks_sellItem"){
+            cManager.cStockRecords.stageItem(relatedItem);
+        }
         if(buttonType == "stocks_incrementInvIndOffset"){
             cManager.cStockRecords.invIndOffset++;
-            if(cManager.cStockRecords.invIndOffset >= cManager.cStockRecords.shipInventory.size()){
+            if(cManager.cStockRecords.invIndOffset >= cManager.cStockRecords.ship_inventory.size()){
                 cManager.cStockRecords.invIndOffset = 0;}
             cManager.cStockRecords.loadButtons_screen_selection();
+        }
+        if(buttonType == "wheel_cartography_goToMode"){
+            relatedWheel.linked_disp = 0;
+        }
+        if(buttonType == "wheel_cartography_goToIcon"){
+            relatedWheel.linked_disp = 1;
         }
         if(buttonType == ""){
             //pass

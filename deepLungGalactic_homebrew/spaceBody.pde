@@ -17,7 +17,7 @@ class spaceBody{
 
     ArrayList<ArrayList<mineral>> mineralSet = new ArrayList<ArrayList<mineral>>();
     int sizeOfMineralDepo = 20;     //How many cells in width and height of the bounding box for the body
-    float mineralCellWidth;                //Size in terms of AU of each cell
+    float mineralCellWidth;         //Size in terms of AU of each cell
 
     spaceBody(PVector pos, PVector vel, PVector acc, float radius, float angMomentum){
         this.pos = pos;

@@ -17,6 +17,19 @@ PVector vec_unitVec(PVector v){
     return new PVector(v.x/mag, v.y/mag);
 }
 
+float findMouseAngle(PVector origin){
+    /*
+    Finds the angle of the mouse from the [X-axis], going 
+    clockwise about an origin (=> from 0.0 to 2.0*PI)
+
+    Imagine a unit vec dotProd. with (1,0)
+    */
+    PVector uDir = vec_unitDir(origin, new PVector(mouseX, mouseY));
+    float theta = acos(uDir.x);
+    if(uDir.y < 0){
+        theta = PI +acos(-uDir.x);}
+    return theta;
+}
 
 //## MAYBE UNNECESSARY ##
 float getLargestElem(ArrayList<ArrayList<Float>> matrix){
@@ -75,11 +88,40 @@ boolean checkRectRectCollision(PVector pos_1, PVector dim_1, PVector pos_2, PVec
         return false;
     }
 }
-boolean checkLineLineCollision(PVector p1_1, PVector p1_2, PVector p2_1, PVector p2_2){
+boolean checkLineLineCollision(PVector p1, PVector q1, PVector p2, PVector q2){
+    PVector dir_1 = vec_unitDir(p1, q1);
+    PVector dir_2 = vec_unitDir(p2, q2);
+    PVector a = new PVector(p1.x -p2.x, p1.y -p2.y);
+    PVector b = new PVector(p2.x -p1.x, p2.y -p1.y);
+    float alpha = ( (a.y*dir_2.x) - (a.x*dir_2.y) ) / ( (dir_1.x*dir_2.y) - (dir_1.y*dir_2.x) );  //Factor on dir when they meet
+    float beta  = ( (b.y*dir_1.x) - (b.x*dir_1.y) ) / ( (dir_2.x*dir_1.y) - (dir_2.y*dir_1.x) );      //## HAVENT CHECKED, MAY BE BOLLOCKS ##
+
+    float alphaEnd = 0.0;
+    if(dir_1.x != 0.0){
+        alphaEnd = (q1.x -p1.x) / (dir_1.x);}
+    else{
+        alphaEnd = (q1.y -p1.y) / (dir_1.y);}
+
+    float betaEnd = 0.0;
+    if(dir_2.x != 0.0){
+        betaEnd = (q2.x -p2.x) / (dir_2.x);}
+    else{
+        betaEnd = (q2.y -p2.y) / (dir_2.y);}
+
     /*
-    p1_1 = line 1, 1st point
-    p1_2 = line 1, 2nd point
+    //##BUG FIXING## -> Shows intersection point of both lines (same point, but clarification)
+    pushStyle();
+    noStroke();
+    fill(255,10,10);
+    ellipse(p1.x +alpha*dir_1.x, p1.y +alpha*dir_1.y, 20, 20);
+
+    fill(10,255,10);
+    ellipse(p2.x +beta*dir_2.x, p2.y +beta*dir_2.y, 10, 10);
+    popStyle();
+    //##BUG FIXING##
     */
-    //pass
-    return ;
+
+    boolean alphaInRange = (0 <= alpha) && (alpha <= alphaEnd);
+    boolean betaInRange  = (0 <=  beta) && ( beta <= betaEnd);
+    return (alphaInRange && betaInRange);
 }
