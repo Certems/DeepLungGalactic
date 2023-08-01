@@ -18,6 +18,7 @@ class spaceBody{
     ArrayList<ArrayList<mineral>> mineralSet = new ArrayList<ArrayList<mineral>>();
     int sizeOfMineralDepo = 20;     //How many cells in width and height of the bounding box for the body
     float mineralCellWidth;         //Size in terms of AU of each cell
+    float mass;
 
     spaceBody(PVector pos, PVector vel, PVector acc, float radius, float angMomentum){
         this.pos = pos;
@@ -28,10 +29,27 @@ class spaceBody{
         coreTemp = 3000;
         tempFalloffType = "r^-2";
         mineralCellWidth = (2.0*radius) / (sizeOfMineralDepo);
+        mass = 1.0*pow(radius, 3);
         
         generateMinerals(3);
     }
 
+    PVector calcGravity(PVector point){
+        /*
+        Calculates the gravitational force produced (by this body only) at a given point
+        There is another function which sums the combiend gravity from all spaceBodies
+
+        ################################################
+        ## ALMOST 100% WILL REQUIRE LOGARITHMIC MATHS ##
+        ################################################
+        
+        Also, is not actually force, force on the probe will come by multiplying by ITS mass
+        */
+        PVector uDir = vec_unitDir(point, pos);  //Towards the planet
+        float mag = getGravityMag(point, pos, mass);
+        PVector force = new PVector(mag*uDir.x, mag*uDir.y);
+        return force;
+    }
     void generateMinerals(int nodeNumber){
         /*
         ####
@@ -152,4 +170,11 @@ class spaceBody{
         popStyle();
     }
     //## BUG FIXING ##
+}
+
+float getGravityMag(PVector p1, PVector p2, float m2){
+    //My own adjusted version for gameplay purposes, much more close range
+    float constant = pow(10, 2);
+    float dist     = vec_mag(vec_dir(p1, p2));
+    return constant*m2*exp(-0.05*pow(dist,2));   //**Adjust values
 }

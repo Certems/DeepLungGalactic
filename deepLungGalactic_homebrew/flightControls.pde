@@ -53,20 +53,22 @@ class flightControls{
     //Launch
     PVector launchRelease_dim;  //
     PVector launchRelease_pos;  //
-    PVector angSelector_dim;        //Make circular, same in x and y
-    PVector angSelector_pos;        //Centre position
-    interactable angSelector = new interactable("angSelector");
+    PVector angularLauncher_dim;        //Make circular, same in x and y
+    PVector angularLauncher_pos;        //Centre position
+    interactable angularLauncher = new interactable("angSelector");
     //Mining
-    PVector drillContinue_dim;  //
-    PVector drillContinue_pos;  //
-    PVector drillStop_dim;          //
-    PVector drillStop_pos;          //
+    PVector drillToggle_dim;        //
+    PVector drillToggle_pos;        //
     PVector mineralTank_dim;    //
     PVector mineralTank_pos;    //
     PVector audioQuick_dim;         //
     PVector audioQuick_pos;         //
     PVector mineralQuick_dim;   //
     PVector mineralQuick_pos;   //
+    PVector transport_dim;          //
+    PVector transport_pos;          //
+    PVector miningSlider_dim;   //
+    PVector miningSlider_pos;   //
 
     int probeSetIndOffset   = 0;      //Offsets the index that the probeSet is first drawn at, so it can be scrolled through
     int outpostSetIndOffset = 0;      //
@@ -97,18 +99,20 @@ class flightControls{
         scanEngage_pos = new PVector(cornerPos.x +0.75*panelDim.x, cornerPos.y +0.36*panelDim.y);
         launchRelease_dim   = new PVector(0.15*panelDim.x, 0.15*panelDim.y);
         launchRelease_pos   = new PVector(cornerPos.x +0.80*panelDim.x, cornerPos.y +0.60*panelDim.y);
-        angSelector_dim     = new PVector(0.80*panelDim.y, 0.80*panelDim.y);
-        angSelector_pos     = new PVector(cornerPos.x +0.45*panelDim.x, cornerPos.y +0.5*panelDim.y);
-        drillContinue_dim   = new PVector(0.15*panelDim.x,0.15*panelDim.y);
-        drillContinue_pos   = new PVector(cornerPos.x +0.8*panelDim.x,cornerPos.y +0.4*panelDim.y);
-        drillStop_dim       = new PVector(0.15*panelDim.x,0.15*panelDim.y);
-        drillStop_pos       = new PVector(cornerPos.x +0.8*panelDim.x,cornerPos.y +0.25*panelDim.y);
+        angularLauncher_dim = new PVector(0.80*panelDim.y, 0.80*panelDim.y);
+        angularLauncher_pos = new PVector(cornerPos.x +0.45*panelDim.x, cornerPos.y +0.5*panelDim.y);
+        drillToggle_dim     = new PVector(0.15*panelDim.x,0.15*panelDim.y);
+        drillToggle_pos     = new PVector(cornerPos.x +0.8*panelDim.x,cornerPos.y +0.4*panelDim.y);
         mineralTank_dim     = new PVector(0.2*panelDim.x, 0.8*panelDim.y);
         mineralTank_pos     = new PVector(cornerPos.x +0.06*panelDim.x, cornerPos.y +0.1*panelDim.y);
         audioQuick_dim      = new PVector(0.1*panelDim.x,0.1*panelDim.x);
         audioQuick_pos      = new PVector(cornerPos.x +0.4*panelDim.x,cornerPos.y +0.75*panelDim.y);
         mineralQuick_dim    = new PVector(0.1*panelDim.x,0.1*panelDim.x);
         mineralQuick_pos    = new PVector(cornerPos.x +0.55*panelDim.x,cornerPos.y +0.75*panelDim.y);
+        transport_dim       = new PVector(0.1*panelDim.x,0.1*panelDim.x);
+        transport_pos       = new PVector(cornerPos.x +0.55*panelDim.x,cornerPos.y +0.45*panelDim.y);
+        miningSlider_dim    = new PVector(panelDim.x/3.0, panelDim.y/10.0);
+        miningSlider_pos    = new PVector( cornerPos.x +(panelDim.x -miningSlider_dim.x)/2.0, cornerPos.y +0.1*panelDim.y );
     }
 
     void display(solarMap cSolarMap){
@@ -120,17 +124,24 @@ class flightControls{
         if(screen_probeLaunch){
             display_probeLaunch();}
         if(screen_outpostMining){
-            display_outpostMining();}
+            display_outpostMining(buttonSet.get(0).relatedOutpost);}
         display_buttonBounds();
     }
     void calc(){
         //pass
     }
     void flight_mousePressed(){
-        //pass
+        angularLauncher.findClickPoints(angularLauncher_pos, angularLauncher_dim);
+        checkOutpostInteractables_clicks(cManager.cSolarMap.outposts);
     }
     void flight_mouseReleased(){
         //pass
+    }
+
+    void checkOutpostInteractables_clicks(ArrayList<outpost> outposts){
+        for(int i=0; i<outposts.size(); i++){
+            outposts.get(i).miningSlider.findClickPoints(miningSlider_pos, miningSlider_dim);      //## VERY INNEFFICIENT, ONLY NEEDS TO CHECK THE OUTPOST THAT WAS CLICKED
+        }
     }
 
     void display_background(){
@@ -332,7 +343,8 @@ class flightControls{
         display_backButton();
     }
     void display_probeAngularLaunchDisp(){
-        angSelector.display(angSelector_pos, angSelector_dim);
+        if(angularLauncher.isVisible){
+            angularLauncher.display(angularLauncher_pos, angularLauncher_dim);}
     }
     void display_launchReleaseButton(){
         pushStyle();
@@ -343,40 +355,26 @@ class flightControls{
         rect(launchRelease_pos.x, launchRelease_pos.y, launchRelease_dim.x, launchRelease_dim.y);
         popStyle();
     }
-    void display_outpostMining(){
-        display_drillContinue();
-        display_drillStop();
-        display_mineralTanks();
+    void display_outpostMining(outpost cOutpost){
+        display_drillToggle();
+        display_mineralTanks(cOutpost);
         display_audioQuick();
         display_mineralQuick();
+        display_transportMinerals();
+        display_miningSlider(cOutpost);
         display_backButton();
     }
-    void display_drillContinue(){
+    void display_drillToggle(){
         pushStyle();
         rectMode(CORNER);
         stroke(30,30,30);
         strokeWeight(2);
         fill(70,70,70);
-        rect(drillContinue_pos.x, drillContinue_pos.y, drillContinue_dim.x, drillContinue_dim.y);
+        rect(drillToggle_pos.x, drillToggle_pos.y, drillToggle_dim.x, drillToggle_dim.y);
         popStyle();
     }
-    void display_drillStop(){
-        pushStyle();
-        rectMode(CORNER);
-        stroke(30,30,30);
-        strokeWeight(2);
-        fill(70,70,70);
-        rect(drillStop_pos.x, drillStop_pos.y, drillStop_dim.x, drillStop_dim.y);
-        popStyle();
-    }
-    void display_mineralTanks(){
-        pushStyle();
-        rectMode(CORNER);
-        stroke(30,30,30);
-        strokeWeight(2);
-        fill(70,70,70);
-        rect(mineralTank_pos.x, mineralTank_pos.y, mineralTank_dim.x, mineralTank_dim.y);
-        popStyle();
+    void display_mineralTanks(outpost cOutpost){
+        cOutpost.cCargo.display(mineralTank_pos, mineralTank_dim);
     }
     void display_audioQuick(){
         pushStyle();
@@ -393,6 +391,18 @@ class flightControls{
         fill(70,70,70);
         ellipse(mineralQuick_pos.x +mineralQuick_dim.x/2.0, mineralQuick_pos.y +mineralQuick_dim.y/2.0, mineralQuick_dim.x, mineralQuick_dim.y);
         popStyle();
+    }
+    void display_transportMinerals(){
+        pushStyle();
+        stroke(30,30,30);
+        strokeWeight(2);
+        fill(70,70,70);
+        ellipse(transport_pos.x +transport_dim.x/2.0, transport_pos.y +transport_dim.y/2.0, transport_dim.x, transport_dim.y);
+        popStyle();
+    }
+    void display_miningSlider(outpost cOutpost){
+        if(cOutpost.miningSlider.isVisible){
+            cOutpost.miningSlider.display(miningSlider_pos, miningSlider_dim);}
     }
     //##BUG FIXING##
     void display_buttonBounds(){
@@ -559,10 +569,11 @@ class flightControls{
         . Back button (to selection), clickable
         */
         buttonSet.clear();
-        button newButton0 = new button(backButton_pos, backButton_dim, "rect", "flight_goToSelection");
-        buttonSet.add(newButton0);
+        button newButton0 = new button(backButton_pos   , backButton_dim   , "rect", "flight_goToSelection");
+        button newButton1 = new button(launchRelease_pos, launchRelease_dim, "rect", "flight_launch_fireProbe");
+        buttonSet.add(newButton0);buttonSet.add(newButton1);
     }
-    void loadButtons_screen_outpostMining(){
+    void loadButtons_screen_outpostMining(outpost givenOutpost){
         /*
         Loads buttons for the given screen, this has;
         . Launch direction controls, interactive
@@ -570,12 +581,13 @@ class flightControls{
         . Back button (to selection), clickable
         */
         buttonSet.clear();
-        button newButton0 = new button(drillContinue_pos, drillContinue_dim , "rect", "flight_outpost_mining_drillContinue");
-        button newButton1 = new button(drillStop_pos    , drillStop_dim     , "rect", "flight_outpost_mining_drillStop");
-        button newButton2 = new button(mineralTank_pos  , mineralTank_dim   , "rect", "flight_outpost_mining_mineralTankInfoReveal");
-        button newButton3 = new button(audioQuick_pos   , audioQuick_dim    , "circ", "flight_outpost_mining_audioQuick");
-        button newButton4 = new button(mineralQuick_pos , mineralQuick_dim  , "circ", "flight_outpost_mining_mineralQuick");
+        button newButton0 = new button(drillToggle_pos  , drillToggle_dim   , "rect", "flight_outpost_mining_drillToggle");
+        button newButton1 = new button(mineralTank_pos  , mineralTank_dim   , "rect", "flight_outpost_mining_mineralTankInfoReveal");
+        button newButton2 = new button(audioQuick_pos   , audioQuick_dim    , "circ", "flight_outpost_mining_audioQuick");
+        button newButton3 = new button(mineralQuick_pos , mineralQuick_dim  , "circ", "flight_outpost_mining_mineralQuick");
+        button newButton4 = new button(transport_pos    , transport_dim     , "circ", "flight_outpost_mining_transportMinerals");
         button newButton5 = new button(backButton_pos   , backButton_dim    , "rect", "flight_goToSelection");
+        newButton0.relatedOutpost = givenOutpost;newButton1.relatedOutpost = givenOutpost;newButton2.relatedOutpost = givenOutpost;newButton3.relatedOutpost = givenOutpost;newButton4.relatedOutpost = givenOutpost;newButton5.relatedOutpost = givenOutpost;
         buttonSet.add(newButton0);buttonSet.add(newButton1);buttonSet.add(newButton2);buttonSet.add(newButton3);buttonSet.add(newButton4);buttonSet.add(newButton5);
     }
 }

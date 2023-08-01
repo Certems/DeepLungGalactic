@@ -34,7 +34,7 @@ class mineral{
         This is based on quantity remaining
         */
         float quantityCutoff = 300.0;   //When transparency starts appearing
-        float alpha = min(255.0, 255.0*(quantity/quantityCutoff));
+        float alpha = min(250.0, 250.0*(quantity/quantityCutoff));
         return alpha;
     }
 }
@@ -44,7 +44,7 @@ class crestulin extends mineral{
     crestulin(){
         name          = "crestulin";
         colour        = new PVector(255,0,0);
-        digDifficulty = 1.0;
+        digDifficulty = 0.7;
     }
 
     //pass
@@ -55,7 +55,7 @@ class forbicite extends mineral{
     forbicite(){
         name          = "forbicite";
         colour        = new PVector(0,0,255);
-        digDifficulty = 1.0;
+        digDifficulty = 1.4;
     }
 
     //pass
@@ -66,7 +66,7 @@ class traen04 extends mineral{
     traen04(){
         name          = "traen04";
         colour        = new PVector(0,255,0);
-        digDifficulty = 1.0;
+        digDifficulty = 2.3;
     }
 
     //pass

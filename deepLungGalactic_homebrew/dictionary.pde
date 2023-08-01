@@ -33,6 +33,36 @@ class stringDictionary{
     }
 }
 
+class stringArrayDictionary{
+    /*
+    Custom dictinary, bit easier to pull values from it
+    */
+    ArrayList<String> keys = new ArrayList<String>();
+    ArrayList<ArrayList<Float>> values = new ArrayList<ArrayList<Float>>();
+
+    stringArrayDictionary(ArrayList<String> keys, ArrayList<ArrayList<Float>> values){
+        this.keys   = keys;
+        this.values = values;
+    }
+
+    ArrayList<Float> getValue(String key){
+        int requiredInd = -1;
+        for(int i=0; i<keys.size(); i++){
+            if(key == keys.get(i)){
+                requiredInd = i;
+                break;
+            }
+        }
+        if(requiredInd != -1){
+            return values.get(requiredInd);}
+        else{
+            return new ArrayList<Float>();}
+    }
+    int size(){
+        return keys.size();
+    }
+}
+
 class mineralDictionary{
     /*
     Custom dictinary, bit easier to pull values from it

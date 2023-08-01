@@ -8,7 +8,6 @@ void setup(){
     initMineralDict();
 }
 void draw(){
-    findMouseAngle(new PVector(width/2.0, height/2.0));
     cManager.display();
     cManager.calc();
 }
@@ -63,6 +62,29 @@ void keyPressed(){
         cManager.cSolarMap.dismissProbe( cManager.cSolarMap.destroyed_probes.get(0) );
         cManager.cFlightControls.generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
         cManager.cFlightControls.loadButtons_screen_selection();
+    }
+    if(key == 'q'){
+        println("Adding staged item q 5.0 ...");
+        cManager.cStockRecords.staged_items.get(0).quantity += 5.0;
+    }
+    if(key == 'w'){
+        println("Evolving stock prices...");
+        cManager.cStockRecords.stockExchange_evolvePrice();
+    }
+    if(key == 'e'){
+        println("Creating outpost...");
+        spaceBody linkedSpaceBody = cManager.cSolarMap.spaceBodies.get(0);
+        float theta = 0.0;
+        outpost newOutpost = new outpost(new PVector(linkedSpaceBody.radius*cos(theta), linkedSpaceBody.radius*sin(theta)), linkedSpaceBody);
+        cManager.cSolarMap.outposts.add(newOutpost);
+    }
+    if(key == 'r'){
+        println("Calculating drill targets...");
+        cManager.cSolarMap.outposts.get(0).calcDrillTargets();
+    }
+    if(key == 't'){
+        println("Outpost is [Drilling]...");
+        cManager.cSolarMap.outposts.get(0).drillStep();
     }
 }
 void mousePressed(){

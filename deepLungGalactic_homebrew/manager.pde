@@ -1,5 +1,5 @@
 class manager{
-    solarMap cSolarMap = new solarMap(40.0);
+    solarMap cSolarMap = new solarMap(fullMapRadius);
 
     sensorArray cSensorArray        = new sensorArray(      new PVector(0,0),                   new PVector(width/2.0, height/2.0) );
     flightControls cFlightControls  = new flightControls(   new PVector(width/2.0,0),           new PVector(width/2.0, height/2.0) );
@@ -22,11 +22,14 @@ class manager{
         cToolArray.display();
 
         cSolarMap.display( new PVector(width/2.0, height/2.0) );    //### For Bug-Fixing ###
-        if(cSolarMap.outposts.size() > 0){                          //
-            cSolarMap.outposts.get(0).displayTargets();}            //
+        //if(cSolarMap.outposts.size() > 0){                          //
+        //    cSolarMap.outposts.get(0).displayTargets();}            //
     }
     void calc(){
-        calc_probeMotion(cSolarMap.probes);
+        cSolarMap.calc();
+        cSensorArray.calc();
+        cStockRecords.calc();
+        cToolArray.calc();
     }
     void manager_mousePressed(){
         /*
@@ -51,16 +54,6 @@ class manager{
         cStockRecords.stocks_mouseReleased();
         cToolArray.tools_mouseReleased();
     }
-
-
-    void calc_probeMotion(ArrayList<probe> probes){
-        //## SHOULD PROBABLY DO ALL POSITION CHANGES AT THE END, BUT FOR PROBES IS LARGELY IRRELEVENT AS THEY ARE TINY
-        for(int i=0; i<probes.size(); i++){
-            probes.get(i).calcDynamics();
-            probes.get(i).checkForLanding(cSolarMap);    //## MAKE EVERY X FRAMES TO REDUCE LAG ##
-        }
-    }
-
 
     void checkButtonsClicked(){
         /*

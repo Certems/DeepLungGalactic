@@ -94,7 +94,7 @@ class sensorArray{
             recordReadings_distance(cManager.cSolarMap, cProbe);
         }
         if(dataType == 5){
-            //pass
+            recordReadings_gravity(cManager.cSolarMap, cProbe);
         }
     }
 
@@ -204,7 +204,7 @@ class sensorArray{
         for(int j=0; j<resolvingPower; j++){
             sensorData.add(new ArrayList<Float>());
             for(int i=0; i<resolvingPower; i++){
-                float newValue = 0.0;//random(0.0, 1.0);  //## ADD A NOISE RANGE FOR MIENRALS SCANS ### ++ DO NOISE AT THE END
+                float newValue = 0.0;
                 sensorData.get(j).add(newValue);
             }
         }
@@ -216,9 +216,44 @@ class sensorArray{
             PVector planetDim = new PVector(2.0*cSolarMap.spaceBodies.get(p).radius, 2.0*cSolarMap.spaceBodies.get(p).radius);
             boolean boundsCross = checkRectRectCollision(new PVector(cProbe.pos.x -expandedScanDim.x/2.0, cProbe.pos.y -expandedScanDim.y/2.0), expandedScanDim, new PVector(cSolarMap.spaceBodies.get(p).pos.x -planetDim.x/2.0, cSolarMap.spaceBodies.get(p).pos.y -planetDim.y/2.0), planetDim); //Bounds of viewable screen and planet(+ some change for expanded heat range)
             if(boundsCross){
+                //### NEW VERSION --> OVER SCANNER DIM ###
+                //Go through each space in the displayed sensor
+                float scannerResWidth = cProbe.scanDim.x / resolvingPower;
+                for(int j=0; j<resolvingPower; j++){
+                    for(int i=0; i<resolvingPower; i++){
+                        //Check if it is in the bounding -> if so, continue checks
+                        //Point in question is in the bounding box of the planet
+                        PVector tilePos = new PVector(cProbe.pos.x -cProbe.scanDim.x/2.0 +i*scannerResWidth, cProbe.pos.y -cProbe.scanDim.y/2.0 +j*scannerResWidth);
+                        boolean withinX = (cSolarMap.spaceBodies.get(p).pos.x -cSolarMap.spaceBodies.get(p).radius <= tilePos.x) && (tilePos.x < cSolarMap.spaceBodies.get(p).pos.x +cSolarMap.spaceBodies.get(p).radius);
+                        boolean withinY = (cSolarMap.spaceBodies.get(p).pos.y -cSolarMap.spaceBodies.get(p).radius <= tilePos.y) && (tilePos.y < cSolarMap.spaceBodies.get(p).pos.y +cSolarMap.spaceBodies.get(p).radius);
+                        if(withinX && withinY){
+                            //Bin the coord into spaces of the planet's cells
+                            PVector tilePlanetCoord = new PVector(tilePos.x -cSolarMap.spaceBodies.get(p).pos.x +cSolarMap.spaceBodies.get(p).radius, tilePos.y -cSolarMap.spaceBodies.get(p).pos.y +cSolarMap.spaceBodies.get(p).radius);    //Gives the tile's coord in terms of the top-right corner of the planet -> can then be binned
+                            PVector tilePlanetCoordBinned = new PVector(floor(tilePlanetCoord.x/cSolarMap.spaceBodies.get(p).mineralCellWidth), floor(tilePlanetCoord.y/cSolarMap.spaceBodies.get(p).mineralCellWidth));
+                            //################################################################################################################################################
+                            //## ABSOLUETLY HUGE, ENORMAS, GARGANTUAN BODGE, BUT SHOULD WORK FOR NOW AND ONLY OCCURS IN EDGE CASES WHEN PLANETS ARE CLOSE TO BORDER I THINK ##
+                            //################################################################################################################################################
+                            if((tilePlanetCoordBinned.x >= 0.0) && (tilePlanetCoordBinned.y >= 0.0)){
+                                //Check if is a mineral or null space
+                                if(cSolarMap.spaceBodies.get(p).mineralSet.get( int(tilePlanetCoordBinned.y) ).get( int(tilePlanetCoordBinned.x) ) != null){
+                                    //If is a mineral space, then add its reading
+                                    float mineralTypeComp  = mineralDict.getValue( cSolarMap.spaceBodies.get(p).mineralSet.get( int(tilePlanetCoordBinned.y) ).get( int(tilePlanetCoordBinned.x) ) );
+                                    float transparencyComp = cSolarMap.spaceBodies.get(p).mineralSet.get( int(tilePlanetCoordBinned.y) ).get( int(tilePlanetCoordBinned.x) ).calcTransparency() /255.0;
+                                    float associatedValue = mineralTypeComp +transparencyComp;
+                                    sensorData.get(j).remove(i);
+                                    sensorData.get(j).add(i, associatedValue );
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                //## OLD VERSION --> OVER BODY DIM
                 //Evaluate across the whole bound of the body WITHIN sensor range
                 //### WILL LATER NEED TO ACCOUNT FOR ROTATION ###
                 //Go through all cells for the body
+                /*
                 for(int j=0; j<cSolarMap.spaceBodies.get(p).mineralSet.size(); j++){
                     for(int i=0; i<cSolarMap.spaceBodies.get(p).mineralSet.get(j).size(); i++){
                         //If the point is part of the body (NOT just leftover from bounding box)
@@ -233,19 +268,24 @@ class sensorArray{
                                 PVector binnedCoord = new PVector(floor(abs(cProbe.pos.x -cProbe.scanDim.x/2.0 -bodyPoint.x)/scanCellDim.x), floor(abs(cProbe.pos.y -cProbe.scanDim.y/2.0 -bodyPoint.y)/scanCellDim.y));    //From prev. step, this value should be within grid range
                                 println(binnedCoord);
                                 //Add mineral VALUE to this point -> display will convert this to COLOUR ---> ################ ACREFUL FOR NOISE -> FLOOR IN DISPLAY ############ OOORRR ADD NOISE AFTER
-                                float associatedValue = mineralDict.getValue( cSolarMap.spaceBodies.get(p).mineralSet.get(j).get(i) );
+                                float mineralTypeComp  = mineralDict.getValue( cSolarMap.spaceBodies.get(p).mineralSet.get(j).get(i) );
+                                float transparencyComp = cSolarMap.spaceBodies.get(p).mineralSet.get(j).get(i).calcTransparency() /255.0;
+                                float associatedValue = mineralTypeComp +transparencyComp;
                                 sensorData.get( int(binnedCoord.y) ).remove( int(binnedCoord.x) );
                                 sensorData.get( int(binnedCoord.y) ).add( int(binnedCoord.x), associatedValue );
                             }
                         }
                     }
                 }
+                */
+
+
             }
         }
         //3
         for(int j=0; j<sensorData.size(); j++){
             for(int i=0; i<sensorData.get(j).size(); i++){
-                float newValue = floor(random(0.0, 40.0));  //## ADD A NOISE RANGE FOR MIENRALS SCANS ### ++ DO NOISE AT THE END #############################
+                float newValue = random(0.0, 40.0);  //## ADD A NOISE RANGE FOR MIENRALS SCANS ### ++ DO NOISE AT THE END #############################
                 if(sensorData.get(j).get(i) == 0.0){    //If is an empty spot, give some noise
                     sensorData.get(j).remove(i);
                     sensorData.get(j).add(i, newValue);
@@ -275,6 +315,47 @@ class sensorArray{
             sensorData.get(0).add(sinVal +varVal);
         }
     }
+    void recordReadings_gravity(solarMap cSolarMap, probe cProbe){
+        /*
+        1. Create req. space in sensorData ("" "") -> Set a default of zero materials everywhere
+        2. Go through all points in sensor range and take gravity readings from all planets added
+            -> may be too intensive, if so do a distance reading first to reduce pool size
+        3. Add noise readings
+        */
+        sensorData.clear();
+        //1
+        for(int j=0; j<resolvingPower; j++){
+            sensorData.add(new ArrayList<Float>());
+            for(int i=0; i<resolvingPower; i++){
+                float newValue = 0.0;
+                sensorData.get(j).add(newValue);
+            }
+        }
+        //2
+        //Go through all sensor spaces
+        PVector sensorCellDim = new PVector((cProbe.scanDim.x)/(resolvingPower), (cProbe.scanDim.y)/(resolvingPower));
+        for(int j=0; j<sensorData.size(); j++){
+            for(int i=0; i<sensorData.get(j).size(); i++){
+                PVector point = new PVector(cProbe.pos.x -cProbe.scanDim.x/2.0 +i*sensorCellDim.x, cProbe.pos.y -cProbe.scanDim.y/2.0 +j*sensorCellDim.y);
+                PVector summedForce = cSolarMap.calcGravity(point);
+                float value = convertVecToValue_gravity(summedForce);
+                sensorData.get(j).remove(i);
+                sensorData.get(j).add(i, value);
+            }
+        }
+        //3
+        /*
+        for(int j=0; j<sensorData.size(); j++){
+            for(int i=0; i<sensorData.get(j).size(); i++){
+                float randVal = random(-0.1, 0.1);
+                float oldValue = sensorData.get(j).get(i);
+                float newValue = oldValue + floor(oldValue)*randVal;    //Either adds on or takes away a bit of MAGNITUDE, but NEVER DIRECTION
+                sensorData.get(j).remove(i);
+                sensorData.get(j).add(i, newValue);
+            }
+        }
+        */
+    }
 
     void display_sensorData(ArrayList<ArrayList<Float>> sensorReadings, int dataType){
         /*
@@ -297,8 +378,6 @@ class sensorArray{
             int asciiBorder = 2;
             float xInterval = (panelDim.x -2.0*border) / (sensorReadings.get(0).size() +2.0*asciiBorder);
             float yInterval = (panelDim.y -2.0*border) / (sensorReadings.size() +2.0*asciiBorder);
-            float valMax = getLargestElem(sensorReadings);    //Largest value in the whole array              --> DO FOR N DIM ARRAYU
-            float valMin = getSmallestElem(sensorReadings);    // Smallest "" ""
             for(int j=0; j<sensorReadings.size() +2*asciiBorder; j++){
                 for(int i=0; i<sensorReadings.get(0).size() +2*asciiBorder; i++){
                     int data_x_coord = i-asciiBorder;
@@ -314,7 +393,7 @@ class sensorArray{
                         plotColour= convertValueToColour_temperature(sensorReadings.get(data_y_coord).get(data_x_coord) / cManager.cSolarMap.temp_maxValue);}
                     else{   //For BORDERS
                         plotSymbol = "p";
-                        plotColour= new PVector(70,70,70);}      
+                        plotColour= new PVector(70,70,70);}
                     fill(plotColour.x, plotColour.y, plotColour.z);
                     text(plotSymbol, cornerPos.x +border +i*xInterval, cornerPos.y + border +j*yInterval);
                     popStyle();
@@ -330,25 +409,27 @@ class sensorArray{
             int asciiBorder = 2;
             float xInterval = (panelDim.x -2.0*border) / (sensorReadings.get(0).size() +2.0*asciiBorder);
             float yInterval = (panelDim.y -2.0*border) / (sensorReadings.size() +2.0*asciiBorder);
-            float valMax = getLargestElem(sensorReadings);    //Largest value in the whole array              --> DO FOR N DIM ARRAYU
-            float valMin = getSmallestElem(sensorReadings);    // Smallest "" ""
             for(int j=0; j<sensorReadings.size() +2*asciiBorder; j++){
                 for(int i=0; i<sensorReadings.get(0).size() +2*asciiBorder; i++){
                     int data_x_coord = i-asciiBorder;
                     int data_y_coord = j-asciiBorder;
                     String plotSymbol;
                     PVector plotColour;
+                    float mineralValue     = 0.0;
+                    float plotTransparency = 250.0;
                     pushStyle();
                     textAlign(CENTER, CENTER);    //## PROBAQBLY MORE EFFICIENT TO LEQVE OUTSIDE IN ANOTHER NESTED POP-PUSH ##
                     boolean isValidX = (0 <= data_x_coord) && (data_x_coord < sensorReadings.get(0).size());
                     boolean isValidY = (0 <= data_y_coord) && (data_y_coord < sensorReadings.size());
                     if(isValidX && isValidY){   //For DATA
-                        plotSymbol = convertValueToSymbol_mineral(sensorReadings.get(data_y_coord).get(data_x_coord));
-                        plotColour= convertValueToColour_mineral(sensorReadings.get(data_y_coord).get(data_x_coord));}
+                        mineralValue     = floor(sensorReadings.get(data_y_coord).get(data_x_coord));
+                        plotTransparency = 250.0*(sensorReadings.get(data_y_coord).get(data_x_coord) - mineralValue);
+                        plotSymbol = convertValueToSymbol_mineral(mineralValue);
+                        plotColour = convertValueToColour_mineral(mineralValue);}
                     else{   //For BORDERS
                         plotSymbol = "o";
                         plotColour= new PVector(70,70,70);}
-                    fill(plotColour.x, plotColour.y, plotColour.z);
+                    fill(plotColour.x, plotColour.y, plotColour.z, plotTransparency);
                     text(plotSymbol, cornerPos.x +border +i*xInterval, cornerPos.y + border +j*yInterval);
                     popStyle();
                 }
@@ -362,8 +443,6 @@ class sensorArray{
             float border        = panelDim.x/20.0;
             float intervalJump  = (panelDim.x-2.0*border) / (sensorReadings.get(0).size());
             float normalisation = panelDim.y/2.0;
-            println("sensordata   -> ",sensorReadings.get(0).size());
-            println("intervalJump -> ",intervalJump);
             pushStyle();
             stroke(255,255,255);
             strokeWeight(2);
@@ -371,7 +450,7 @@ class sensorArray{
             line(cornerPos.x +border, cornerPos.y +panelDim.y/2.0, cornerPos.x +panelDim.x -border, cornerPos.y +panelDim.y/2.0);
             for(int i=0; i<sensorReadings.get(0).size(); i++){
                 ellipse(cornerPos.x +border +i*intervalJump, panelDim.y/2.0 -normalisation*sensorZoom*sensorReadings.get(0).get(i), 10,10);
-                println(normalisation*sensorZoom*sensorReadings.get(0).get(i));
+                //println(normalisation*sensorZoom*sensorReadings.get(0).get(i));
             }
             popStyle();
         }
@@ -399,10 +478,41 @@ class sensorArray{
         }
         if(dataType == 5){
             /*
+            2D input
+
             Gravitational readings in a GRID around the probe
-            => disp. as grid, #### MAYBE SOMETHING ELSE AS WELL ####
+            => disp. as grid
             */
-            //pass
+            float border    = panelDim.x/30.0;
+            int asciiBorder = 2;
+            float xInterval = (panelDim.x -2.0*border) / (sensorReadings.get(0).size() +2.0*asciiBorder);
+            float yInterval = (panelDim.y -2.0*border) / (sensorReadings.size() +2.0*asciiBorder);
+            for(int j=0; j<sensorReadings.size() +2*asciiBorder; j++){
+                for(int i=0; i<sensorReadings.get(0).size() +2*asciiBorder; i++){
+                    int data_x_coord = i-asciiBorder;
+                    int data_y_coord = j-asciiBorder;
+                    //###################################################
+                    //## -> MAKE SYMBOL BASED ON DIRECTION OF FLOW     ##
+                    //##    -> SHADE OF WHITE BASED ON MAGNITUDE       ##
+                    //###################################################
+                    String plotSymbol;
+                    PVector plotColour;
+                    pushStyle();
+                    textAlign(CENTER, CENTER);    //## PROBAQBLY MORE EFFICIENT TO LEQVE OUTSIDE IN ANOTHER NESTED POP-PUSH ##
+                    boolean isValidX = (0 <= data_x_coord) && (data_x_coord < sensorReadings.get(0).size());
+                    boolean isValidY = (0 <= data_y_coord) && (data_y_coord < sensorReadings.size());
+                    if(isValidX && isValidY){   //For DATA
+                        //println(sensorReadings.get(data_y_coord).get(data_x_coord));
+                        plotSymbol = convertValueToSymbol_gravity(sensorReadings.get(data_y_coord).get(data_x_coord));
+                        plotColour = convertValueToColour_gravity(sensorReadings.get(data_y_coord).get(data_x_coord));}
+                    else{   //For BORDERS
+                        plotSymbol = "o";
+                        plotColour= new PVector(70,70,70);}
+                    fill(plotColour.x, plotColour.y, plotColour.z);
+                    text(plotSymbol, cornerPos.x +border +i*xInterval, cornerPos.y + border +j*yInterval);
+                    popStyle();
+                }
+            }
         }
     }
     float findDataNormalisation(float dataType, ArrayList<ArrayList<Float>> dataset){
@@ -436,6 +546,13 @@ class sensorArray{
     }
 
 
+    /*
+    -----------------------------------
+    Temperature is encoded as such;
+        The value recorded in the 2D array can be immediately interpretted
+        as the raw temperature of the location
+    -----------------------------------
+    */
     String convertValueToSymbol_temperature(float value){
         /*
         Temperature readings
@@ -460,12 +577,6 @@ class sensorArray{
         */
         newSymbol = "%";
         return newSymbol;
-    }
-    String convertValueToSymbol_mineral(float value){
-        /*
-        Mineral readings
-        */
-        return "%";
     }
     PVector convertValueToColour_temperature(float value){
         /*
@@ -493,35 +604,97 @@ class sensorArray{
         }
         return newColour;
     }
+    /*
+    -----------------------------------
+    Minerals are encoded as such;
+        The value recorded has two components; (1) an integer value corresponding 
+        to a mineral type [as can be seen in the mineralDict], and (2) a decimal 
+        part in range (0.0, 0.98) that corresponds to the [shortened] percentage 
+        of quantity compared to the quantityCutoff [defined in mineral calcTransparency()] 
+        , and hence gives the transparency of the material when *255.0 for displaying.
+        Colours for minerals are directly viewed from the mienralDict, using the 
+        colours defined in the mineral's class
+    -----------------------------------
+    */
+    String convertValueToSymbol_mineral(float value){
+        /*
+        Mineral readings
+        */
+        return "%";
+    }
     PVector convertValueToColour_mineral(float value){
         /*
         Mineral readings
         Bin into sections for each mineral type
-
-        ################################################################################################################
-        ## NEEDS TO ACCOUNT FOR QUANTITY --> HOW CAN THAT BE EXPRESSED IN SENSOR DATA -> AS A DECIMAL POINT MAYBE ??? ##
-        ################################################################################################################
-
         0.0 as min, 1.0 as max
         */
         mineral givenMineral = mineralDict.getKey(value);
-        PVector newColour = new PVector(0,0,0);
+        PVector newColour = new PVector(40,40,40);
         if(givenMineral != null){
             newColour = givenMineral.colour;}
         return newColour;
     }
+    /*
+    -----------------------------------
+    Gravity is encoded as such;
+        The value in the reading is composed of two sections; (1)The integer component 
+        is the rounded magnitude of the force [possibly multiplied by some factor to 
+        account for the scales involved ????????????], and (2) The decimal part shows the 
+        truncated [to have 3.dp e.g 3.14 => 0.314] angle the force acts along from the 
+        X-axis. This can result in noteable inaccuracy but that is simply a defect in the 
+        probe's cheaply made sensor setup ;)
+    -----------------------------------
+    */
+    float convertVecToValue_gravity(PVector gravityVec){
+        float magComp = floor(vec_mag(gravityVec));
+        float angComp = 0.1*findAngle(gravityVec, new PVector(0,0));    //Always < 10.0 => *0.1 is fine (so is always a decimal)
+        float value = magComp +angComp;
+        return value;
+    }
+    String convertValueToSymbol_gravity(float value){
+        /*
+        Depicts direction to some small degree
+        Rest is assumed knowledge by user's brain knowing gravity pulls objects towards large masses
+        */
+        float angComp = 10.0*( value -floor(value) );   //Convert to decimal only, then account for 0.1 * reduction
+        String symbol = " ";
+        float thetaBorder = PI/8.0;
+        if(      ((3.0*PI/4.0 -thetaBorder <= angComp) && (angComp < 3.0*PI/4.0 +thetaBorder)) || ((7.0*PI/4.0 -thetaBorder <= angComp) && (angComp < 7.0*PI/4.0 +thetaBorder)) ){
+            symbol = "/";}
+        else if( ((    PI/4.0 -thetaBorder <= angComp) && (angComp <     PI/4.0 +thetaBorder)) || ((5.0*PI/4.0 -thetaBorder <= angComp) && (angComp < 5.0*PI/4.0 +thetaBorder)) ){
+            symbol = "\\";}
+        else if( ((    PI/2.0 -thetaBorder <= angComp) && (angComp <     PI/2.0 +thetaBorder)) || ((3.0*PI/2.0 -thetaBorder <= angComp) && (angComp < 3.0*PI/2.0 +thetaBorder)) ){
+            symbol = "|";}
+        else if( ((       0.0 -thetaBorder <= angComp) && (angComp <        0.0 +thetaBorder)) || ((    PI/1.0 -thetaBorder <= angComp) && (angComp <     PI/1.0 +thetaBorder)) ){
+            symbol = "_";}
+        else{
+            symbol = "+";}
+        return symbol;
+    }
+    PVector convertValueToColour_gravity(float value){
+        /*
+        Shades of white used -> to determine magnitude
+        */
+        float magComp = floor(value);
+        float gravityMax = 300.0;   //Max value the sensor is capable of processing -> colour in relation to this
+        float ratio = magComp/gravityMax;
+        return new PVector(255.0*ratio, 255.0*ratio, 255.0*ratio);
+    }
 
     //For BUGFIXING #######
     void displayArray(){
+        println("###");
         if(sensorData.size() == 30){
-            PVector startPos = new PVector(30, 30);
-            float cellSize = 7.0;
+            PVector startPos = new PVector(mouseX, mouseY);
+            float cellSize = 6.0;
             pushStyle();
             textSize(cellSize);
             textAlign(CENTER, CENTER);
             for(int j=0; j<sensorData.size(); j++){
+                println("");
                 for(int i=0; i<sensorData.get(j).size(); i++){
-                    fill(40,40,40);
+                    print( sensorData.get(j).get(i) );
+                    fill(90,90,90);
                     if(sensorData.get(j).get(i) == 1.0){
                         fill(255,0,0);}
                     if(sensorData.get(j).get(i) == 2.0){
@@ -570,3 +743,17 @@ class dart{
         pos.y += moveDist*dir.y;
     }
 }
+
+/*
+
+###
+###
+ Drilling in wrong direction, X and Y flipped somewhere????????
+Fix the cargo container showing materials too
+
+ ALSO, ADD AN --[ICON FOR THE OUTPOST]-- ON THE SCANNER WHEN VIEWED FROM QUICK-MINERAL
+
+ ADD ALIEN INTERACTIONS + ACTUAL WORKING SOUND STUFF
+###
+###
+*/

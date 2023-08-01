@@ -7,9 +7,10 @@ class wheel{
 
     The extended versions will then be used as required in the program
     */
+    boolean active = false; //Whether to show the wheel or not, controlled by 'popWheel...' buttons
+
     ArrayList<wheel> linked_wheels = new ArrayList<wheel>();    //Allows a wheel to be recurrsive
     ArrayList<wheel_segment> segments = new ArrayList<wheel_segment>();
-    ArrayList<button> buttonSet = new ArrayList<button>();
 
     int linked_disp = -1;   //Which wheel index to display; -1 = display this, n = display nth
 
@@ -76,9 +77,43 @@ class wheel{
         PVector offset = new PVector(radFactor*cos(segmentIndex*thetaInterval +thetaInterval/2.0), radFactor*sin(segmentIndex*thetaInterval +thetaInterval/2.0));
         return new PVector(pos.x +offset.x, pos.y +offset.y);
     }
-
-    void loadButtons(){
+    ArrayList<button> getButtonSet(){
+        /*
+        Returns the buttonSet from the latest wheel
+        */
+        boolean finalLinkFound = false;     //These are both PRECAUTIONS
+        int counter = 0;                    //
+        int counterMax = 100;               //
+        wheel cWheel = this;
+        ArrayList<button> requiredButtonSet = null;
+        while( (!finalLinkFound) && (counter<counterMax) ){
+            if(cWheel.linked_disp == -1){
+                //Have found the last link
+                finalLinkFound = true;
+                requiredButtonSet = cWheel.loadButtons();
+                break;}
+            if( (0 <= cWheel.linked_disp) && (cWheel.linked_disp < cWheel.linked_wheels.size()) ){
+                //Move to the linked wheel
+                cWheel = linked_wheels.get(cWheel.linked_disp);}
+            counter++;
+        }
+        return requiredButtonSet;
+    }
+    void resetOrdering(){
+        /*
+        Resets linked_disps and active status
+        */
+        linked_disp = -1;
+        active = false;
+        for(int i=0; i<linked_wheels.size(); i++){
+            linked_disp = -1;
+            active = false;
+            linked_wheels.get(i).resetOrdering();
+        }
+    }
+    ArrayList<button> loadButtons(){
         //Is Overwritten
+        return null;
     }
 }
 class cartography_main_wheel extends wheel{
@@ -97,21 +132,18 @@ class cartography_main_wheel extends wheel{
         //Segments
         wheel_segment newSeg1 = new wheel_segment("Modes");
         wheel_segment newSeg2 = new wheel_segment("Icons");
-        wheel_segment newSeg3 = new wheel_segment("...");
-        segments.add(newSeg1);segments.add(newSeg2);segments.add(newSeg3);
+        segments.add(newSeg1);segments.add(newSeg2);
         //Buttons
         loadButtons();
     }
-    void loadButtons(){
-        //#################
-        //## Could definately do this better, but works for now
-        //#################
-        buttonSet.clear();
-        button newButton0 = new button(pos, new PVector(radius, radius), "arc", "wheel_cartography_goToMode");  //0th
+    ArrayList<button> loadButtons(){
+        ArrayList<button> buttonSet = new ArrayList<button>();
+        button newButton0 = new button(pos, new PVector(2.0*radius, 2.0*radius), "arc", "wheel_cartography_goToMode");  //0th
         newButton0.relatedWheel = this;newButton0.thetaStart = 0.0;newButton0.thetaStop = PI;
-        button newButton1 = new button(pos, new PVector(radius, radius), "arc", "wheel_cartography_goToIcon");  //1st
+        button newButton1 = new button(pos, new PVector(2.0*radius, 2.0*radius), "arc", "wheel_cartography_goToIcon");  //1st
         newButton1.relatedWheel = this;newButton1.thetaStart = PI;newButton1.thetaStop = 2.0*PI;
         buttonSet.add(newButton0);buttonSet.add(newButton1);
+        return buttonSet;
     }
 }
 class cartography_mode_wheel extends wheel{
@@ -126,14 +158,26 @@ class cartography_mode_wheel extends wheel{
         //Wheels
         //...
         //Segments
-        //...
+        wheel_segment newSeg1 = new wheel_segment("Back");
+        wheel_segment newSeg2 = new wheel_segment("Place");
+        wheel_segment newSeg3 = new wheel_segment("Remove");
+        wheel_segment newSeg4 = new wheel_segment("Zoom");
+        segments.add(newSeg1);segments.add(newSeg2);segments.add(newSeg3);segments.add(newSeg4);
         //Buttons
         loadButtons();
     }
     @Override
-    void loadButtons(){
-        buttonSet.clear();
-        //buttonSet.add(newButton0);
+    ArrayList<button> loadButtons(){
+        ArrayList<button> buttonSet = new ArrayList<button>();
+        ArrayList<String> buttonTitles = new ArrayList<String>();
+        buttonTitles.add("wheel_cartography_mode_goBack");buttonTitles.add("wheel_cartography_mode_selectPlace");buttonTitles.add("wheel_cartography_mode_selectRemove");buttonTitles.add("wheel_cartography_mode_selectZoom");
+        float thetaInterval = (2.0*PI)/segments.size();
+        for(int i=0; i<segments.size(); i++){
+            button newButton0 = new button(pos, new PVector(2.0*radius, 2.0*radius), "arc", buttonTitles.get(i));
+            newButton0.relatedWheel = this;newButton0.thetaStart = i*thetaInterval;newButton0.thetaStop = (i+1)*thetaInterval;
+            buttonSet.add(newButton0);
+        }
+        return buttonSet;
     }
 }
 class cartography_icon_wheel extends wheel{
@@ -148,14 +192,27 @@ class cartography_icon_wheel extends wheel{
         //Wheels
         //...
         //Segments
-        //...
+        wheel_segment newSeg1 = new wheel_segment("Back");
+        wheel_segment newSeg2 = new wheel_segment("Circle");
+        wheel_segment newSeg3 = new wheel_segment("Triangle");
+        wheel_segment newSeg4 = new wheel_segment("Square");
+        wheel_segment newSeg5 = new wheel_segment("Exclaim");
+        segments.add(newSeg1);segments.add(newSeg2);segments.add(newSeg3);segments.add(newSeg4);segments.add(newSeg5);
         //Buttons
         loadButtons();
     }
     @Override
-    void loadButtons(){
-        buttonSet.clear();
-        //buttonSet.add(newButton0);
+    ArrayList<button> loadButtons(){
+        ArrayList<button> buttonSet = new ArrayList<button>();
+        ArrayList<String> buttonTitles = new ArrayList<String>();
+        buttonTitles.add("wheel_cartography_icon_goBack");buttonTitles.add("wheel_cartography_icon_selectCircle");buttonTitles.add("wheel_cartography_icon_selectTriangle");buttonTitles.add("wheel_cartography_icon_selectSquare");buttonTitles.add("wheel_cartography_icon_selectExclaim");
+        float thetaInterval = (2.0*PI)/segments.size();
+        for(int i=0; i<segments.size(); i++){
+            button newButton0 = new button(pos, new PVector(2.0*radius, 2.0*radius), "arc", buttonTitles.get(i));
+            newButton0.relatedWheel = this;newButton0.thetaStart = i*thetaInterval;newButton0.thetaStop = (i+1)*thetaInterval;
+            buttonSet.add(newButton0);
+        }
+        return buttonSet;
     }
 }
 class placeholder_wheel extends wheel{
@@ -175,9 +232,10 @@ class placeholder_wheel extends wheel{
         loadButtons();
     }
     @Override
-    void loadButtons(){
-        buttonSet.clear();
+    ArrayList<button> loadButtons(){
+        ArrayList<button> buttonSet = new ArrayList<button>();
         //buttonSet.add(newButton0);
+        return buttonSet;
     }
 }
 

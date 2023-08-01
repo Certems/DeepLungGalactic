@@ -1,8 +1,15 @@
 class interactable{
     /*
-    More diverse button type
-    Remembers inputs (e.g button press, release coords)
+    An object that records position that are clicked within its bounds
+
+    On click, it is checked (if visible) to see where mouse coords are
+
+    Some examples of its uses are;
+    Angular selector -> circular plate that remembers 1 position
+    Slider selector  -> Rectangle that remembers 1 position
     */
+    Boolean isVisible = false;
+
     PVector point_1 = new PVector(0,0);    //All points relative to the draw position given (centre position given)
     PVector point_2 = new PVector(0,0);    //
     String type;
@@ -14,6 +21,9 @@ class interactable{
     void display(PVector pos, PVector dim){
         if(type == "angSelector"){
             display_angSelector(pos, dim);
+        }
+        if(type == "slider"){
+            display_slider(pos, dim);
         }
         //...
     }
@@ -39,7 +49,93 @@ class interactable{
         noFill();
         stroke(242, 245, 66);
         strokeWeight(3);
-        ellipse(pos.x +point_1.x, pos.y +point_1.y, point_1_diam, point_1_diam);
+        ellipse(point_1.x, point_1.y, point_1_diam, point_1_diam);
         popStyle();
     }
+    void display_slider(PVector pos, PVector dim){
+        /*
+        pos = Top-Left corner
+        dim = full widht and height
+        */
+        pushStyle();
+        rectMode(CORNER);
+
+        //Background
+        fill(80,80,80);
+        stroke(40,40,40);
+        strokeWeight(3);
+        rect(pos.x, pos.y, dim.x, dim.y);
+
+        //Axis
+        //... Maybe Include
+        
+        //Point
+        fill(220,220,220);
+        noStroke();
+        ellipse(point_1.x, point_1.y +dim.y/2.0, 0.7*dim.y, 0.7*dim.y);
+        popStyle();
+    }
+    void findClickPoints(PVector pos, PVector dim){
+        if(isVisible){
+            if(type == "angSelector"){
+                findClickPoints_angSelector(pos, dim);}
+            if(type == "slider"){
+                findClickPoints_slider(pos, dim);}
+        }
+    }
+    void findClickPoints_angSelector(PVector pos, PVector dim){
+        println("Clicking angSelector...");
+        float dist = vec_mag(vec_dir(pos, new PVector(mouseX, mouseY)));
+        boolean withinRadius = dist < dim.x/2.0;
+        if(withinRadius){
+            point_1 = new PVector(mouseX, mouseY);
+        }
+    }
+    void findClickPoints_slider(PVector pos, PVector dim){
+        println("Clicking slider...");
+        boolean withinX = (pos.x <= mouseX) && (mouseX < pos.x +dim.x);
+        boolean withinY = (pos.y <= mouseY) && (mouseY < pos.y +dim.y);
+        if(withinX && withinY){
+            point_1 = new PVector(mouseX, pos.y);
+        }
+    }
+
+    //AngSelector specific
+    float getTheta(PVector pos){
+        /*
+        Returns the angle the point chosen makes with the centre
+        */
+        return findAngle(point_1, pos);
+    }
+    float getSpeed(PVector pos, PVector dim){
+        /*
+        Returns the speed the probe will be fired at
+        Based on the distance of the point from the centre
+        */
+        float speedMax = 0.01;                          //In AU frame^-1
+        float dist     = vec_mag(vec_dir(pos, point_1));
+        float ratio    = (dist)/(dim.x/2.0);
+        return speedMax*ratio;
+    }
+
+    //Slider specific
+    float findPercentage(PVector pos, PVector dim){
+        /*
+        Returns the percentage of the way the point is through the slider, which 
+        can be used to assign cts. values
+        */
+        return (point_1.x -pos.x) / (dim.x);
+    }
 }
+
+
+
+
+
+/*
+TODO;
+1. Have gravity apply to probes
+2. Adjust values to be nice
+
+1. Cartographer stuff
+*/

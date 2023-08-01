@@ -1,3 +1,5 @@
+float fullMapRadius = 40.0;
+
 class solarMap{
     /*
     Holds all information about the solar system your are surveying, that being celestial 
@@ -23,6 +25,29 @@ class solarMap{
         AuToPixelSF = ( min(width, height)/2.0 ) / (mapRadius); //So the solar system takes up the whole screen, only for displaying; All calculations left in NON-PIXEL units
         PixelToAuSF = 1.0/AuToPixelSF;
         generateSpaceBodies(20);
+    }
+
+    void calc(){
+        calcOutposts();
+        calcProbes();
+    }
+    void calcOutposts(){
+        calcOutpostDrilling();
+    }
+    void calcOutpostDrilling(){
+        for(int i=0; i<outposts.size(); i++){
+            outposts.get(i).calcDrilling();
+        }
+    }
+    void calcProbes(){
+        calc_probeMotion(probes);
+    }
+    void calc_probeMotion(ArrayList<probe> probes){
+        //## SHOULD PROBABLY DO ALL POSITION CHANGES AT THE END, BUT FOR PROBES IS LARGELY IRRELEVENT AS THEY ARE TINY
+        for(int i=0; i<probes.size(); i++){
+            probes.get(i).calcDynamics();
+            probes.get(i).checkForLanding(this);    //## MAKE EVERY X FRAMES TO REDUCE LAG ##
+        }
     }
 
     void display(PVector displayPos){
@@ -129,5 +154,17 @@ class solarMap{
             }
         }
         //## MAYBE GENERATE DISP CELLS HERE IF IS A PROBLEM ##
+    }
+    PVector calcGravity(PVector point){
+        /*
+        Calculates the gravity from all planets summed
+        */
+        PVector force = new PVector(0,0);
+        for(int i=0; i<spaceBodies.size(); i++){
+            PVector indiv_force = spaceBodies.get(i).calcGravity(point);
+            force.x += indiv_force.x;
+            force.y += indiv_force.y;
+        }
+        return force;
     }
 }

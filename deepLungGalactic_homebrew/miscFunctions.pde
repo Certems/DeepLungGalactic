@@ -16,22 +16,70 @@ PVector vec_unitVec(PVector v){
     float mag = vec_mag(v);
     return new PVector(v.x/mag, v.y/mag);
 }
-
-float findMouseAngle(PVector origin){
+PVector vec_rotate(PVector v, float theta){
     /*
-    Finds the angle of the mouse from the [X-axis], going 
+    +ve => CW
+    -ve => CCW
+    */
+    return new PVector(
+        v.x*cos(theta) - v.y*sin(theta),
+        v.x*sin(theta) + v.y*cos(theta)
+    );
+}
+
+float findAngle(PVector point, PVector origin){
+    /*
+    Finds the angle of the point from the [X-axis], going 
     clockwise about an origin (=> from 0.0 to 2.0*PI)
 
     Imagine a unit vec dotProd. with (1,0)
     */
-    PVector uDir = vec_unitDir(origin, new PVector(mouseX, mouseY));
+    PVector uDir = vec_unitDir(origin, point);
     float theta = acos(uDir.x);
     if(uDir.y < 0){
         theta = PI +acos(-uDir.x);}
     return theta;
 }
 
-//## MAYBE UNNECESSARY ##
+float roundTo1dp(float value){
+    return floor(10.0*value)/10.0;
+}
+
+//*These ones are needed
+int findMax(ArrayList<Float> givenArray){
+    /*
+    Returns the INDEX of the max element
+    */
+    if(givenArray.size() > 0){
+        int maxInd = 0;
+        for(int i=0; i<givenArray.size(); i++){
+            if(givenArray.get(i) > givenArray.get(maxInd)){
+                maxInd = i;
+            }
+        }
+        return maxInd;
+    }
+    else{
+        return -1;
+    }
+}
+int findMin(ArrayList<Float> givenArray){
+    /*
+    Returns the INDEX of the min element
+    */
+    if(givenArray.size() > 0){
+        int minInd = 0;
+        for(int i=0; i<givenArray.size(); i++){
+            if(givenArray.get(i) < givenArray.get(minInd)){
+                minInd = i;
+            }
+        }
+        return minInd;
+    }
+    else{
+        return -1;
+    }
+}
 float getLargestElem(ArrayList<ArrayList<Float>> matrix){
     float largestVal = matrix.get(0).get(0);
     for(int j=0; j<matrix.size(); j++){
