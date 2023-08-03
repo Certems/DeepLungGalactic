@@ -464,14 +464,14 @@ class sensorArray{
             if(sensorReadings.size() > 0){                  //#### NOT REALLY NEEDED ANYMORE, AS INITIALISES AS NO DATA -> CORRECT SIZE GENERATED WHEN SCANNED ##############
                 float border        = panelDim.x/20.0;
                 float intervalJump  = (panelDim.x-2.0*border) / (sensorReadings.get(0).size());
-                float normalisation = findDataNormalisation(dataType, sensorReadings);  //### Look for largest value, and normalise all values so they fit on the graph ###
+                float normalisation = 1.0*cManager.cSolarMap.mapRadius;//2,0* for full coverage, 1.0* => good readablity but also nay over-reach    //findDataNormalisation(dataType, sensorReadings);  //### Look for largest value, and normalise all values so they fit on the graph ###
                 pushStyle();
                 stroke(255,255,255);
                 strokeWeight(2);
                 noFill();
                 line(cornerPos.x +border, cornerPos.y +panelDim.y/2.0, cornerPos.x +panelDim.x -border, cornerPos.y +panelDim.y/2.0);
                 for(int i=0; i<sensorReadings.get(0).size(); i++){
-                    line(cornerPos.x +border +i*intervalJump, panelDim.y/2.0, cornerPos.x +border +i*intervalJump, panelDim.y/2.0 -normalisation*sensorZoom*sensorReadings.get(0).get(i));
+                    line(cornerPos.x +border +i*intervalJump, panelDim.y/2.0, cornerPos.x +border +i*intervalJump, panelDim.y/2.0 -(panelDim.y/2.0)*(sensorReadings.get(0).get(i)/normalisation)*sensorZoom );
                 }
                 popStyle();
             }
