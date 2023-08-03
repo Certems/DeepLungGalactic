@@ -174,7 +174,7 @@ class spaceBody{
 
 float getGravityMag(PVector p1, PVector p2, float m2){
     //My own adjusted version for gameplay purposes, much more close range
-    float constant = pow(10, 2);
+    float constant = 1.5*pow(10, -5);       //WAS 2 NOw ...
     float dist     = vec_mag(vec_dir(p1, p2));
     return constant*m2*exp(-0.05*pow(dist,2));   //**Adjust values
 }

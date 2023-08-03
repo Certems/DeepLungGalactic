@@ -23,22 +23,22 @@ class probe{
     }
 
     //Solar map will handle drawing this in relation to other planets
-    void calcDynamics(){
-        calcAcc();
+    void calcDynamics(solarMap cSolarMap){
+        calcAcc(cSolarMap);
         calcVel();
         calcPos();
     }
-    void calcAcc(){
+    void calcAcc(solarMap cSolarMap){
         //####
         //## MAY NEED TO USE LOGARITHMIC CALCS
         //####
-        PVector force = new PVector(0,0);
-        
-        //Sum forces
-        //...
 
-        acc.x = force.x/mass;
-        acc.y = force.y/mass;
+        //Sum forces
+        PVector force = cSolarMap.calcGravity(pos);
+
+        //**If other forces are later included, make sure to /mass and *mass in gravity force
+        acc.x = force.x;    //** Note this is for good reason;
+        acc.y = force.y;    //Force = calcGravity*mass   =>   acc = calcGravity*mass / mass = calcGravity (= force)
     }
     void calcVel(){
         vel.x += acc.x;

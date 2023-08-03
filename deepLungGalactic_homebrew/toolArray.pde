@@ -158,12 +158,16 @@ class toolArray{
     }
     //Cartographer
     void display_cartographer(){
+        display_cartographyMap();
         display_zoomButtons();
         if(wheel_main.active){
             display_wheel_main();}
         display_wheelLoad_main();
         display_backIcon();
         //...
+    }
+    void display_cartographyMap(){
+        cartoMap.display();
     }
     void display_zoomButtons(){
         pushStyle();
@@ -201,13 +205,19 @@ class toolArray{
 
 
     void calc(){
-        //pass
+        if(screen_cartographer){
+            cartoMap.calc();
+        }
     }
     void tools_mousePressed(){
-        cartoMap.performClickAction();
+        if(screen_cartographer){
+            cartoMap.performClickAction();
+        }
     }
     void tools_mouseReleased(){
-        //pass
+        if(screen_cartographer){
+            cartoMap.performClickReleaseAction();
+        }
     }
 
 
@@ -278,9 +288,13 @@ class cartographyMap{
          ----            ----
               ----------
 
-    ####
-    ## DO RED CHECKERED BORDER OUTSIDE KNOWN REGION OF MAP --> BASKET WEAVE TYPE BEAT
-    ####
+    visibleScale 1.0 => show the 'fullDim'
+                 2.0 => width and height are half of the 'fullDim' presets
+
+    Note; Everything is stored in terms of AU, and only converted to pixels as 
+        things are displayed
+    Also Note; Within the map and everything around (including vis box) is dealt with 
+        on a TYPICAL AXIS, and does NOT USE the PROCESSING STYLE AXIS (+ve Y is down)
     */
     toolArray cToolArray;
 
@@ -289,15 +303,29 @@ class cartographyMap{
     String selectedIcon = "";
     String selectedMode = "";
     float mapRadius;
-    PVector visibleDim = new PVector(1.0, 1.0*(height/width));  //Full width & height
-    PVector visiblePos = new PVector(0,0);                      //Top-Left corner
+    float aspectRatio;
+    
+    PVector fullDim    = new PVector(0,0);  //In AU, kept constant -> Largest posible visible region (can see everything)
+    PVector visiblePos = new PVector(0,0);  //Top-Left corner -> in AU -> (0,0) = centre of the map, where ship is
+    float visibleScale = 1.0;               //What percentage of the full panelDim is given as visible
+
+    boolean isZooming  = false;
+    PVector clickStart = new PVector(0,0);  //For zooming, where zoom begins
+    PVector clickEnd   = new PVector(0,0);  //For zomming, where zoom ends
+
+    float minorInterval = 5.0;  //In AU, how often minor intervals are recorded --> Counting starts from origin
+    float majorInterval = 20.0;  //In AU, make sure this is a multiple of the MINOR interval lengths
 
     cartographyMap(toolArray cToolArray, float mapRadius){
         this.cToolArray = cToolArray;
         this.mapRadius  = mapRadius;
+        aspectRatio  = (cToolArray.panelDim.x) / (cToolArray.panelDim.y);
+        fullDim      = new PVector(2.0*mapRadius*aspectRatio, 2.0*mapRadius);      //## MAYBE SHOULD BE NEGATIVE NOT POSITIVE
+
+        resetZoom();
     }
 
-    void display(PVector pos, PVector dim){
+    void display(){
         /*
         Displays visible region in the given dimensions, with its origin top-left corner 
         located at pos
@@ -306,8 +334,83 @@ class cartographyMap{
         ## WILL HAVE TO ACCOUNT FOR PLANET ROTATION AT SOME POINT ##
         ############################################################
         */
+        display_axis();
         display_icons();
-        display_mapBorder();
+        if(isZooming){
+            display_zoomArea();}
+        //...
+    }
+    void calc(){
+        if(isZooming){
+            updateClickEnd();}
+    }
+    void display_axis(){
+        /*
+        Displays coords in a scaling axis that either;
+        . Follows X/Y strictly, in a bright white colour
+        OR
+        . Sticks to approporiate side of screen, in a faded white colour
+        
+        Make sure to do same for both axes
+        1. Find fixed Y value -> based off [sticking or floating]
+        2. Draw background axis line in
+        3. Find 1st interval that appears, the distance between each, then draw & label all
+
+        ######
+        ## Do a MAJOR and MINOR interval, so display is much clearer
+        ######
+        */
+        //1
+        float fixed_X = calcFixedAxis(false);
+        float fixed_Y = calcFixedAxis(true);
+        //2
+        pushMatrix();
+        pushStyle();
+        translate(cToolArray.cornerPos.x, cToolArray.cornerPos.y);
+
+        stroke(255,255,255,200);
+        strokeWeight(4);
+
+        line(0.0, fixed_Y, cToolArray.panelDim.x, fixed_Y);
+        line(fixed_X, 0.0, fixed_X, cToolArray.panelDim.y);
+
+        popStyle();
+        popMatrix();
+        //3
+        float intervalThickness = cToolArray.panelDim.y/30.0;
+        float interval_loc_X = -getPixels((visiblePos.x) % (minorInterval));  //All in pixels
+        float interval_loc_Y =  getPixels((visiblePos.y) % (minorInterval));  //
+        float intervalSeparation = getPixels(minorInterval);                  //
+        int counterMax = 1000;
+        int counter = 0;
+        pushStyle();
+        fill(200,200,200);
+        stroke(220,220,220);
+        strokeWeight(1);
+        textAlign(CENTER, CENTER);
+        textSize( min(0.4*intervalSeparation, cToolArray.panelDim.y/15.0) );
+        while(counter < counterMax){                //For X
+
+            line(cToolArray.cornerPos.x +interval_loc_X, cToolArray.cornerPos.y +fixed_Y +intervalThickness, cToolArray.cornerPos.x +interval_loc_X, cToolArray.cornerPos.y +fixed_Y -intervalThickness);
+            text(str( roundTo1dp( minorInterval*(counter) +visiblePos.x -((visiblePos.x) % (minorInterval)) ) ), cToolArray.cornerPos.x +interval_loc_X, cToolArray.cornerPos.y +fixed_Y +intervalThickness);
+
+            interval_loc_X += intervalSeparation;
+            if(interval_loc_X > cToolArray.panelDim.x){
+                break;}
+            counter++;
+        }
+        counter = 0;
+        while(counter < counterMax){                //For Y
+
+            line(cToolArray.cornerPos.x +fixed_X +intervalThickness, cToolArray.cornerPos.y +interval_loc_Y, cToolArray.cornerPos.x +fixed_X -intervalThickness, cToolArray.cornerPos.y +interval_loc_Y);
+            text(str( roundTo1dp( -minorInterval*(counter) +visiblePos.y -((visiblePos.y) % (minorInterval)) ) ), cToolArray.cornerPos.x +fixed_X +2.0*intervalThickness, cToolArray.cornerPos.y +interval_loc_Y);
+
+            interval_loc_Y += intervalSeparation;
+            if(interval_loc_Y > cToolArray.panelDim.y){
+                break;}
+            counter++;
+        }
+        popStyle();
     }
     void display_icons(){
         /*
@@ -315,48 +418,101 @@ class cartographyMap{
         */
         for(int i=0; i<icons.size(); i++){
             if( iconInView(icons.get(i)) ){
-                icons.get(i).display();
+                icons.get(i).display(this, visiblePos);
             }
         }
     }
-    void display_mapBorder(){
-        /*
-        Displays any map border in viewable range
-        */
-        //pass
+    void display_zoomArea(){
+        PVector dir = vec_dir(clickStart, clickEnd);
+        float newVisScale = fullDim.x / getUnit(dir.x);
+        pushStyle();
+        rectMode(CORNER);
+        fill(3, 252, 65, 80);
+        stroke(250,250,250);
+        strokeWeight(2);
+        
+        rect(clickStart.x, clickStart.y, getPixels(fullDim.x/newVisScale), getPixels(fullDim.y/newVisScale));
+        
+        popStyle();
+    }
+    float calcFixedAxis(boolean isXaxis){
+        float fixed = 0.0;
+        if(isXaxis){
+            float distToAxis_X = visiblePos.y;  //Distance from top-left corner of visible box to the axis
+            fixed = getPixels(distToAxis_X);    //Assumes fixing to floating position (Overwritten if wrong)
+            if(distToAxis_X < 0.0){
+                //=>Fix to top of panel
+                fixed = 0.0;}
+            if(distToAxis_X > fullDim.y/visibleScale){
+                //=> Fix to bottom of panel
+                fixed = cToolArray.panelDim.y;}
+        }
+        else{
+            float distToAxis_Y = -visiblePos.x;  //Distance from top-left corner of visible box to the axis
+            fixed = getPixels(distToAxis_Y);    //Assumes fixing to floating position (Overwritten if wrong)
+            if(distToAxis_Y < 0.0){
+                //=>Fix to top of panel
+                fixed = 0.0;}
+            if(distToAxis_Y > fullDim.x/visibleScale){
+                //=> Fix to bottom of panel
+                fixed = cToolArray.panelDim.x;}
+        }
+        return fixed;
     }
     void resetZoom(){
-        visiblePos = new PVector();
-        visibleDim = new PVector();
+        visiblePos   = new PVector(-mapRadius*aspectRatio, mapRadius);      //## MAYBE SHOULD BE NEGATIVE NOT POSITIVE
+        visibleScale = 1.0;
     }
     void performClickAction(){
-        if(selectedMode == "place"){
-            performClickPlace();}
-        if(selectedMode == "remove"){
-            performClickRemove();}
-        if(selectedMode == "zoom");{
-            PVector startClickPos = new PVector(mouseX, mouseY);
-            performClickZoom();}
+        boolean withinX = (cToolArray.cornerPos.x < mouseX) && (mouseX < cToolArray.cornerPos.x +cToolArray.panelDim.x);
+        boolean withinY = (cToolArray.cornerPos.y < mouseY) && (mouseY < cToolArray.cornerPos.y +cToolArray.panelDim.y);
+        boolean withinPanel   = withinX && withinY;
+        if(withinPanel){
+            boolean wheelInactive = !cManager.cToolArray.wheel_main.active;
+            boolean outsideButtonRange = !checkIfInButtonRange();
+            if(wheelInactive && outsideButtonRange){
+                println("Performing click action...");
+                if(selectedMode == "place"){
+                    performClickPlace();}
+                if(selectedMode == "remove"){
+                    performClickRemove();}
+                if(selectedMode == "zoom"){
+                    performClickZoom();}
+            }
+        }
+    }
+    void performClickReleaseAction(){
+        boolean wheelInactive = !cManager.cToolArray.wheel_main.active;
+        boolean withinX = (cToolArray.cornerPos.x < mouseX) && (mouseX < cToolArray.cornerPos.x +cToolArray.panelDim.x);
+        boolean withinY = (cToolArray.cornerPos.y < mouseY) && (mouseY < cToolArray.cornerPos.y +cToolArray.panelDim.y);
+        boolean withinPanel   = withinX && withinY;
+        if(wheelInactive && withinPanel){
+            if(isZooming){
+                performClickReleaseZoom();}
+            //....
+        }
     }
     void performClickPlace(){
-        float pixelToUnitConversion = ((2.0*mapRadius)*(visibleDim.x/cToolArray.panelDim.x))/visibleDim.x;
+        println("Click action -> place...");
+
+        PVector relativePos_mouse = new PVector(mouseX -cToolArray.cornerPos.x, mouseY -cToolArray.cornerPos.y);
+        PVector fromVis_unit  = new PVector(getUnit(relativePos_mouse.x), getUnit(relativePos_mouse.y));    //Units in from top-left corner of visible box
+        PVector clickPos_unit = new PVector(visiblePos.x +fromVis_unit.x, visiblePos.y -fromVis_unit.y);    //Position of click, from centre of map
         float iconSize = 10.0;
-        PVector clickUnitPos = new PVector( (mouseX -cToolArray.cornerPos.x)*pixelToUnitConversion, (mouseY -cToolArray.cornerPos.y)*pixelToUnitConversion );   //The position, in units, where the mouse is relative to the screen
-        PVector iconPos = new PVector(visiblePos.x +clickUnitPos.x, visiblePos.y +clickUnitPos.y);
         if(selectedIcon == "circle"){
-            circle newIcon = new circle(iconPos, iconSize);
+            circle newIcon = new circle(clickPos_unit, iconSize);
             icons.add(newIcon);
         }
         if(selectedIcon == "triangle"){
-            triangle newIcon = new triangle(iconPos, iconSize);
+            triangle newIcon = new triangle(clickPos_unit, iconSize);
             icons.add(newIcon);
         }
         if(selectedIcon == "square"){
-            square newIcon = new square(iconPos, iconSize);
+            square newIcon = new square(clickPos_unit, iconSize);
             icons.add(newIcon);
         }
         if(selectedIcon == "exclaim"){
-            exclaim newIcon = new exclaim(iconPos, iconSize);
+            exclaim newIcon = new exclaim(clickPos_unit, iconSize);
             icons.add(newIcon);
         }
     }
@@ -365,34 +521,82 @@ class cartographyMap{
         Only removes one at a time
         Could change to remove multiple if there is overlap, but I see no point in doing that, this gives more control
         */
-        float pixelToUnitConversion = ((2.0*mapRadius)*(visibleDim.x/cToolArray.panelDim.x))/visibleDim.x;
-        PVector clickUnitPos = new PVector( (mouseX -cToolArray.cornerPos.x)*pixelToUnitConversion, (mouseY -cToolArray.cornerPos.y)*pixelToUnitConversion );
-        PVector clickPos = new PVector(visiblePos.x +clickUnitPos.x, visiblePos.y +clickUnitPos.y);
+        println("Click action -> remove...");
+        PVector relativePos_mouse = new PVector(mouseX -cToolArray.cornerPos.x, mouseY -cToolArray.cornerPos.y);
+        PVector fromVis_unit  = new PVector(getUnit(relativePos_mouse.x), getUnit(relativePos_mouse.y));    //Units in from top-left corner of visible box
+        PVector clickPos_unit = new PVector(visiblePos.x +fromVis_unit.x, visiblePos.y -fromVis_unit.y);    //Position of click, from centre of map
         for(int i=0; i<icons.size(); i++){
-            float dist = vec_mag(vec_dir(clickPos, icons.get(i).pos));
-            if(dist <= icons.get(i).size/2.0){  //**Icon size == full width or diameter
+            float dist = vec_mag(vec_dir(clickPos_unit, icons.get(i).pos));
+            float iconRadius = visibleScale*icons.get(i).size/2.0;
+            if(dist <= iconRadius){  //**Icon size == full width or diameter
                 icons.remove(i);
                 break;
             }
         }
     }
     void performClickZoom(){
-        //pass
+        println("Click PRESS action -> zoom...");
+        clickStart = new PVector(mouseX, mouseY);
+        isZooming = true;
+    }
+    void performClickReleaseZoom(){
+        println("Click RELEASE action -> zoom...");
+
+        PVector relativePos_start = new PVector(clickStart.x -cToolArray.cornerPos.x, clickStart.y -cToolArray.cornerPos.y);
+        PVector fromVis_unit  = new PVector(getUnit(relativePos_start.x), getUnit(relativePos_start.y));    //Units in from top-left corner of visible box
+        PVector clickPos_unit = new PVector(visiblePos.x +fromVis_unit.x, visiblePos.y -fromVis_unit.y);    //Position of click, from centre of map
+
+        PVector dir = vec_dir(clickStart, clickEnd);
+        float newVisScale = min(fullDim.x / getUnit(dir.x), fullDim.y / getUnit(dir.y));
+        visiblePos   = new PVector(clickPos_unit.x, clickPos_unit.y);
+        visibleScale = newVisScale;
+
+        clickEnd = new PVector(clickStart.x, clickStart.y);
+        isZooming = false;
+    }
+    void updateClickEnd(){
+        clickEnd = new PVector(mouseX, mouseY);
+    }
+    boolean checkIfInButtonRange(){
+        boolean buttonsInRange = false;
+        for(int i=0; i<cToolArray.buttonSet.size(); i++){
+            if(cToolArray.buttonSet.get(i).inButtonRange(new PVector(mouseX, mouseY))){
+                buttonsInRange = true;
+                break;
+            }
+        }
+        return buttonsInRange;
     }
     boolean iconInView(icon givenIcon){
         /*
         Checks if an icon is within the viewable screen
-        
-        ####################################################
-        ## SIZE NEEDS TO CHANGE AS YOU ARE MORE ZOOMED IN ##
-        ####################################################
         */
-        boolean withinX = (visiblePos.x -givenIcon.size <= givenIcon.pos.x) && (givenIcon.pos.x < visiblePos.x +givenIcon.size +visibleDim.x);  //## MAKE SURE THE  +- SIZE IS WORKING OK ----> MAY BE OTHER WAY AROUND ###########
-        boolean withinY = (visiblePos.y -givenIcon.size <= givenIcon.pos.y) && (givenIcon.pos.y < visiblePos.y +givenIcon.size +visibleDim.y);  //#########
+        boolean withinX = (visiblePos.x                         <= givenIcon.pos.x) && (givenIcon.pos.x < visiblePos.x +getUnit(givenIcon.size) +fullDim.x/visibleScale);
+        boolean withinY = (visiblePos.y -fullDim.y/visibleScale <= givenIcon.pos.y) && (givenIcon.pos.y < visiblePos.y +getUnit(givenIcon.size));
         if(withinX && withinY){
             return true;}
         else{
             return false;}
+    }
+    float getPixels(float unit){
+        /*
+        Converts a given number of AU units to an approporiate number of pixels
+        This depends on the visibleScale
+        */
+        float unitCoverage  = (fullDim.x) / (visibleScale);    //In AU
+        float pixelCoverage = cToolArray.panelDim.x; //Just for clarity
+        float scaleFactor   = ((pixelCoverage) / (unitCoverage));
+        return unit*scaleFactor;
+    }
+    float getUnit(float pixel){
+        /*
+        Converts a given number of pixels to an approporiate unit value
+        This depends on the visibleScale
+        */
+        float unitCoverage  = (fullDim.x) / (visibleScale);    //In AU
+        float pixelCoverage = cToolArray.panelDim.x; //Just for clarity
+        float scaleFactor   = ((unitCoverage) / (pixelCoverage));
+        return pixel*scaleFactor;
     }
 }
 class icon{
@@ -405,7 +609,7 @@ class icon{
         this.pos  = pos;
     }
 
-    void display(){
+    void display(cartographyMap cartoMap, PVector visiblePos){
         //Overwrite this
     }
 }
@@ -417,7 +621,18 @@ class circle extends icon{
         name = "circle";
     }
 
-    //pass
+    @Override
+    void display(cartographyMap cartoMap, PVector visiblePos){
+        PVector fromVis_pixel = new PVector(cartoMap.getPixels(pos.x -visiblePos.x), cartoMap.getPixels(-pos.y +visiblePos.y));
+        pushStyle();
+
+        noFill();
+        stroke(200,120,40);
+        strokeWeight(4);
+        ellipse(cartoMap.cToolArray.cornerPos.x +fromVis_pixel.x, cartoMap.cToolArray.cornerPos.y +fromVis_pixel.y, size*cartoMap.visibleScale, size*cartoMap.visibleScale);
+
+        popStyle();
+    }
 }
 class triangle extends icon{
     //pass
@@ -427,7 +642,18 @@ class triangle extends icon{
         name = "triangle";
     }
 
-    //pass
+    @Override
+    void display(cartographyMap cartoMap, PVector visiblePos){
+        PVector fromVis_pixel = new PVector(cartoMap.getPixels(pos.x -visiblePos.x), cartoMap.getPixels(-pos.y +visiblePos.y));
+        pushStyle();
+
+        noFill();
+        stroke(40,200,120);
+        strokeWeight(4);
+        ellipse(cartoMap.cToolArray.cornerPos.x +fromVis_pixel.x, cartoMap.cToolArray.cornerPos.y +fromVis_pixel.y, size*cartoMap.visibleScale, size*cartoMap.visibleScale);
+
+        popStyle();
+    }
 }
 class square extends icon{
     //pass
@@ -437,7 +663,19 @@ class square extends icon{
         name = "square";
     }
 
-    //pass
+    @Override
+    void display(cartographyMap cartoMap, PVector visiblePos){
+        PVector fromVis_pixel = new PVector(cartoMap.getPixels(pos.x -visiblePos.x), cartoMap.getPixels(-pos.y +visiblePos.y));
+        pushStyle();
+
+        noFill();
+        stroke(120,40,200);
+        strokeWeight(4);
+        rectMode(CENTER);
+        rect(cartoMap.cToolArray.cornerPos.x +fromVis_pixel.x, cartoMap.cToolArray.cornerPos.y +fromVis_pixel.y, size*cartoMap.visibleScale, size*cartoMap.visibleScale);
+
+        popStyle();
+    }
 }
 class exclaim extends icon{
     //pass
@@ -447,5 +685,16 @@ class exclaim extends icon{
         name = "exclaim";
     }
 
-    //pass
+    @Override
+    void display(cartographyMap cartoMap, PVector visiblePos){
+        PVector fromVis_pixel = new PVector(cartoMap.getPixels(pos.x -visiblePos.x), cartoMap.getPixels(-pos.y +visiblePos.y));
+        pushStyle();
+
+        fill(250,50,50);
+        stroke(250,50,50);
+        strokeWeight(4);
+        ellipse(cartoMap.cToolArray.cornerPos.x +fromVis_pixel.x, cartoMap.cToolArray.cornerPos.y +fromVis_pixel.y, size*cartoMap.visibleScale, size*cartoMap.visibleScale);
+
+        popStyle();
+    }
 }

@@ -136,6 +136,10 @@ boolean checkRectRectCollision(PVector pos_1, PVector dim_1, PVector pos_2, PVec
         return false;
     }
 }
+boolean checkCircleCircleCollision(PVector pos_1, float rad_1, PVector pos_2, float rad_2){
+    float dist = vec_mag(vec_dir(pos_1, pos_2));
+    return (dist <= rad_1 +rad_2);
+}
 boolean checkLineLineCollision(PVector p1, PVector q1, PVector p2, PVector q2){
     PVector dir_1 = vec_unitDir(p1, q1);
     PVector dir_2 = vec_unitDir(p2, q2);

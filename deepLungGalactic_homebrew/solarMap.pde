@@ -45,7 +45,7 @@ class solarMap{
     void calc_probeMotion(ArrayList<probe> probes){
         //## SHOULD PROBABLY DO ALL POSITION CHANGES AT THE END, BUT FOR PROBES IS LARGELY IRRELEVENT AS THEY ARE TINY
         for(int i=0; i<probes.size(); i++){
-            probes.get(i).calcDynamics();
+            probes.get(i).calcDynamics(this);
             probes.get(i).checkForLanding(this);    //## MAKE EVERY X FRAMES TO REDUCE LAG ##
         }
     }
@@ -136,6 +136,36 @@ class solarMap{
             spaceBody newBody = new spaceBody( new PVector(spawnDist*cos(spawnTheta), spawnDist*sin(spawnTheta)), new PVector(0,0), new PVector(0,0), random(minRad, maxRad), 0.0);
             spaceBodies.add(newBody);
         }
+        //Remove overlapping planets
+        int removedNumber = removeSpaceBodyOverlaps();
+        //Generate new planets
+        //println("Bodies removed -> ",removedNumber);
+        if(removedNumber > 0){
+            generateSpaceBodies(removedNumber);}
+    }
+    int removeSpaceBodyOverlaps(){
+        /*
+        1. Go through each body
+        2. Check if it collides with any other body (but not itself)
+        3.      If it does collide, remove the original
+        */
+        int totalRemoved = 0;
+        //1
+        for(int j=spaceBodies.size()-1; j>=0; j--){
+            //2
+            for(int i=0; i<spaceBodies.size(); i++){
+                float bodySafetyFactor = 1.5;   //**SF on BOTH planet radi used to make sure planets are not overlapping +some change
+                if(i != j){
+                    if( checkCircleCircleCollision( spaceBodies.get(j).pos, spaceBodies.get(j).radius*bodySafetyFactor, spaceBodies.get(i).pos, spaceBodies.get(i).radius*bodySafetyFactor ) ){
+                        //3
+                        totalRemoved++;
+                        spaceBodies.remove(j);
+                        break;
+                    }
+                }
+            }
+        }
+        return totalRemoved;
     }
     void destroyProbe(probe cProbe){
         for(int i=0; i<probes.size(); i++){

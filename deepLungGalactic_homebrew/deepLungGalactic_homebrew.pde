@@ -86,6 +86,30 @@ void keyPressed(){
         println("Outpost is [Drilling]...");
         cManager.cSolarMap.outposts.get(0).drillStep();
     }
+    if(key == 'a'){
+        println("Scaling DOWN cartoMap...");
+        cManager.cToolArray.cartoMap.visibleScale -= 0.1;
+    }
+    if(key == 's'){
+        println("Scaling UP cartoMap...");
+        cManager.cToolArray.cartoMap.visibleScale += 0.1;
+    }
+    if(key == 'h'){
+        println("Moving cartoMap LEFT...");
+        cManager.cToolArray.cartoMap.visiblePos.x -= 0.5;
+    }
+    if(key == 'j'){
+        println("Moving cartoMap UP...");
+        cManager.cToolArray.cartoMap.visiblePos.y += 0.5;
+    }
+    if(key == 'k'){
+        println("Moving cartoMap RIGHT...");
+        cManager.cToolArray.cartoMap.visiblePos.x += 0.5;
+    }
+    if(key == 'm'){
+        println("Moving cartoMap DOWN...");
+        cManager.cToolArray.cartoMap.visiblePos.y -= 0.5;
+    }
 }
 void mousePressed(){
     cManager.manager_mousePressed();
@@ -99,23 +123,25 @@ Notes & TODO;
 . Scroller as a rect under the sections with an arrow pointing down --> HOWEVER MAY MEAN FINGERS GET IN THE WAY
 . Analogue displays, tick every X seconds for refresh rate
 . Compose-esc displays -> only redraw if needed
-. 2.0 * RADIUS FOR ELLIPSES
-. Remove overlapping planets when spawned
 . Change to     Gray Blue   or smthing like that
                 Blue Gray
 . Normalise all naming conventions
-. Have buttons all correctly placed
 . Do music for radio + background humming -> hotline miami style
-. Do minerals for planets
-. Landing + mining mechanics
 .##### MAYBE CONVERT THE DISTANCE LINE SENSOR TO AN ASCII VERSION ###########
-.    Have stock items be split in 3 sections {| BUY |  SEE GRAPH  | SELL |}
-.    Have running total of what is ADDED to total and what is TAKEN from total before confirming a purchase
 . Special caches floating in space that create beeping sounds -> offer cool rewards, hard to find --> [Skins maybe]
 . ...
 
 1. Generate bodies of random size
 2. From this, assign a title (planet, asteroid, etc)
 3. Assign special qualities (temperature, aliens, etc)
+
+
+
+
+
+
+FINISH OFF CARTOGRAPHY SECTION
+-> AXIS
+-> ZOOM MODE
 
 */

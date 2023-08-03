@@ -90,13 +90,12 @@ class flightControls{
         thrustCtrl_spacing = panelDim.y/4.0;
         thrustCtrl_fwd_pos = new PVector(cornerPos.x +0.1*panelDim.x, 0.05*panelDim.y                                        );
         thrustCtrl_bck_pos = new PVector(cornerPos.x +0.1*panelDim.x, 0.05*panelDim.y +(thrustCtrl_dim.y +thrustCtrl_spacing));
-        dynaVec_dim = new PVector(0.62*panelDim.x, 0.2*panelDim.y);
-        dynaVec_pos = new PVector(cornerPos.x +0.35*panelDim.x, cornerPos.y +0.01*panelDim.y);
-        dynaVec_spacing = 0.05*panelDim.x;
+        dynaVec_dim = new PVector(0.5*panelDim.x, 0.15*panelDim.y);
+        dynaVec_pos = new PVector(cornerPos.x +0.4*panelDim.x, cornerPos.y +0.05*panelDim.y);
         scanSel_dim = new PVector(0.2*panelDim.x, 0.25*panelDim.y);
-        scanSel_pos = new PVector(cornerPos.x +0.55*panelDim.x, cornerPos.y +0.36*panelDim.y);
+        scanSel_pos = new PVector(cornerPos.x +0.35*panelDim.x, cornerPos.y +0.7*panelDim.y);
         scanEngage_dim = new PVector(0.2*panelDim.x, 0.25*panelDim.y);
-        scanEngage_pos = new PVector(cornerPos.x +0.75*panelDim.x, cornerPos.y +0.36*panelDim.y);
+        scanEngage_pos = new PVector(cornerPos.x +0.55*panelDim.x, cornerPos.y +0.7*panelDim.y);
         launchRelease_dim   = new PVector(0.15*panelDim.x, 0.15*panelDim.y);
         launchRelease_pos   = new PVector(cornerPos.x +0.80*panelDim.x, cornerPos.y +0.60*panelDim.y);
         angularLauncher_dim = new PVector(0.80*panelDim.y, 0.80*panelDim.y);
@@ -263,30 +262,39 @@ class flightControls{
         popStyle();
     }
     void display_probeVectors(probe givenProbe){
+        float border      = dynaVec_dim.y/5.0;
+        float coordOffset = dynaVec_dim.x/6.0;
+
         pushStyle();
-
-        rectMode(CORNER);
-        //Bounding box
-        //fill(120,120,120, 40);
-        //stroke(20,20,20);
-        //rect(dynaVec_pos.x, dynaVec_pos.y, dynaVec_dim.x, dynaVec_dim.y);
-
+        rectMode(CORNER);        
+        //Backgrounds
         fill(60,60,60);
         stroke(100,100,100);
         strokeWeight(1);
-        float elementWidth = (dynaVec_dim.x -2.0*dynaVec_spacing)/3.0;
-        float propPercent = 0.8;
-        float propWidth   = propPercent*elementWidth;
-        float propOffset  = ((1.0 -propPercent)*elementWidth)/2.0;
-        //Elem 1
-        rect(dynaVec_pos.x                                                 , dynaVec_pos.y, elementWidth, 2.0*dynaVec_dim.y/3.0);
-        rect(dynaVec_pos.x +propOffset                                     , dynaVec_pos.y +2.0*dynaVec_dim.y/3.0, propWidth, 1.0*dynaVec_dim.y/3.0);
-        //Elem 2
-        rect(dynaVec_pos.x +1.0*(elementWidth +dynaVec_spacing)            , dynaVec_pos.y, elementWidth, 2.0*dynaVec_dim.y/3.0);
-        rect(dynaVec_pos.x +1.0*(elementWidth +dynaVec_spacing) +propOffset, dynaVec_pos.y +2.0*dynaVec_dim.y/3.0, propWidth, 1.0*dynaVec_dim.y/3.0);
-        //Elem 2
-        rect(dynaVec_pos.x +2.0*(elementWidth +dynaVec_spacing)            , dynaVec_pos.y, elementWidth, 2.0*dynaVec_dim.y/3.0);
-        rect(dynaVec_pos.x +2.0*(elementWidth +dynaVec_spacing) +propOffset, dynaVec_pos.y +2.0*dynaVec_dim.y/3.0, propWidth, 1.0*dynaVec_dim.y/3.0);
+        rect(dynaVec_pos.x, dynaVec_pos.y                             , dynaVec_dim.x, dynaVec_dim.y);
+        rect(dynaVec_pos.x, dynaVec_pos.y +1.0*(dynaVec_dim.y +border), dynaVec_dim.x, dynaVec_dim.y);
+        rect(dynaVec_pos.x, dynaVec_pos.y +2.0*(dynaVec_dim.y +border), dynaVec_dim.x, dynaVec_dim.y);
+        //Titles
+        textSize(0.5*dynaVec_dim.y);
+        textAlign(LEFT, CENTER);
+        fill(250,200,200);
+        text("Pos;",dynaVec_pos.x, dynaVec_pos.y +dynaVec_dim.y/2.0);
+        fill(200,250,200);
+        text("Vel;",dynaVec_pos.x, dynaVec_pos.y +dynaVec_dim.y/2.0 +1.0*(dynaVec_dim.y +border));
+        fill(200,200,250);
+        text("Acc;",dynaVec_pos.x, dynaVec_pos.y +dynaVec_dim.y/2.0 +2.0*(dynaVec_dim.y +border));
+        //Coords
+        String posFormatted = "("+str(roundTo1dp(givenProbe.pos.x))+" , "+str(roundTo1dp(givenProbe.pos.y))+")";
+        String velFormatted = "("+str(roundTo1dp(givenProbe.vel.x))+" , "+str(roundTo1dp(givenProbe.vel.y))+")";
+        String accFormatted = "("+str(roundTo1dp(givenProbe.acc.x))+" , "+str(roundTo1dp(givenProbe.acc.y))+")";
+        textSize(0.5*dynaVec_dim.y);
+        textAlign(CENTER, CENTER);
+        fill(250,200,200);
+        text(posFormatted, dynaVec_pos.x +(dynaVec_dim.x +coordOffset)/2.0, dynaVec_pos.y +dynaVec_dim.y/2.0);
+        fill(200,250,200);
+        text(velFormatted, dynaVec_pos.x +(dynaVec_dim.x +coordOffset)/2.0, dynaVec_pos.y +dynaVec_dim.y/2.0 +1.0*(dynaVec_dim.y +border));
+        fill(200,200,250);
+        text(accFormatted, dynaVec_pos.x +(dynaVec_dim.x +coordOffset)/2.0, dynaVec_pos.y +dynaVec_dim.y/2.0 +2.0*(dynaVec_dim.y +border));
 
         popStyle();
     }

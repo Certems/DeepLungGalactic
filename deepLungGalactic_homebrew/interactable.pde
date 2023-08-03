@@ -127,15 +127,3 @@ class interactable{
         return (point_1.x -pos.x) / (dim.x);
     }
 }
-
-
-
-
-
-/*
-TODO;
-1. Have gravity apply to probes
-2. Adjust values to be nice
-
-1. Cartographer stuff
-*/
