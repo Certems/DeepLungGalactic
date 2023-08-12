@@ -56,7 +56,7 @@ class stockRecords{
         inv_dim = new PVector(panelDim.x/2.0, (panelDim.y -(inv_cellNumber+1)*inv_border) / (inv_cellNumber));
         inv_sizeOfText = inv_dim.y/2.0;
 
-        backButton_dim = new PVector(0.15*panelDim.x,0.15*panelDim.y);
+        backButton_dim = new PVector(0.15*panelDim.x,0.15*panelDim.x);
         backButton_pos = new PVector(cornerPos.x +0.80*panelDim.x, cornerPos.y +0.80*panelDim.y);
         scroller_dim = new PVector(panelDim.y/7.0, panelDim.y/7.0);
         scroller_pos = new PVector(cornerPos.x +0.88*panelDim.x, cornerPos.y +0.83*panelDim.y);
@@ -106,6 +106,33 @@ class stockRecords{
             int givenInvInd = i+invIndOffset;
             if(givenInvInd < ship_inventory.size()){
                 pushStyle();
+                imageMode(CORNER);
+                image(texture_stocks_selection_inv, cornerPos.x +inv_leftBorder, cornerPos.y +inv_border*(i+1) +inv_dim.y*(i));
+
+                fill(255,255,255);
+                textAlign(LEFT,CENTER);
+                textSize(inv_sizeOfText);
+                String infoText_name  = ship_inventory.get(givenInvInd).name;
+                String infoText_value = str(ship_inventory.get(givenInvInd).quantity);
+                boolean onLastLine = (i == int(inv_cellNumber)-1);
+                boolean moreInvRemaining = (ship_inventory.size()-1 > givenInvInd);
+                if(onLastLine && moreInvRemaining){
+                    infoText_name = "...";}
+                text(infoText_name,  cornerPos.x +inv_leftBorder                 ,cornerPos.y +inv_border*(i+1) +inv_dim.y*(i) +inv_sizeOfText);
+                text(infoText_value, cornerPos.x +inv_leftBorder +inv_dim.x/2.0 , cornerPos.y +inv_border*(i+1) +inv_dim.y*(i) +inv_sizeOfText);}
+            else{
+                break;}
+        }
+    }
+    void display_shipInventory_simple(){
+        /*
+        Shows all resources avaialble, how much of each you own and how much 
+        each can be sold and brought for
+        */
+        for(int i=0; i<ship_inventory.size(); i++){
+            int givenInvInd = i+invIndOffset;
+            if(givenInvInd < ship_inventory.size()){
+                pushStyle();
                 fill(80,80,80,180);
                 noStroke();
                 rectMode(CORNER);
@@ -128,6 +155,12 @@ class stockRecords{
     }
     void display_invScroller(){
         pushStyle();
+        imageMode(CENTER);
+        image(texture_general_button_scroller, scroller_pos.x +scroller_dim.x/2.0, scroller_pos.y +scroller_dim.y/2.0);
+        popStyle();
+    }
+    void display_invScroller_simple(){
+        pushStyle();
         fill(50,50,50);
         noStroke();
         ellipse(scroller_pos.x +scroller_dim.x/2.0, scroller_pos.y +scroller_dim.y/2.0, scroller_dim.x, scroller_dim.y);
@@ -139,6 +172,63 @@ class stockRecords{
         popStyle();
     }
     void display_stagedDetails(){
+        /*
+        Displays a breakdown of the cost + and - summed
+        AS WELL AS the increase or decrease of each item beside it
+
+        ###############################
+        ## SEPARATE THESE A BIT MORE ##
+        ###############################
+        */
+        pushStyle();
+        //Backdrop
+        imageMode(CORNER);
+        image(texture_stocks_selection_stockDetail, stockDetail_pos.x, stockDetail_pos.y);
+        float sizeOfText = stockDetail_dim.y/7.0;
+        textSize(sizeOfText);
+        textAlign(LEFT,CENTER);
+        //Positive
+        String positiveValue = str(calcPositiveCost(staged_items));
+        fill(80,255,80);
+        text(positiveValue, stockDetail_pos.x +sizeOfText/2.0, stockDetail_pos.y +0.0*stockDetail_dim.y/3.0 +sizeOfText/2.0);
+        //Negative
+        String negativeValue = str(calcNegativeCost(staged_items));
+        fill(255,80,80);
+        text(negativeValue, stockDetail_pos.x +sizeOfText/2.0, stockDetail_pos.y +1.0*stockDetail_dim.y/3.0 +sizeOfText/2.0);
+        //Total
+        String totalValue = str(calcTotalCost(staged_items));
+        fill(255,255,255);
+        text(totalValue, stockDetail_pos.x +sizeOfText/2.0, stockDetail_pos.y +2.0*stockDetail_dim.y/3.0 +sizeOfText/2.0);
+        //Commit button
+        fill(60,60,60);
+        noStroke();
+        ellipse(stockDetail_commit_pos.x +stockDetail_commit_dim.x/2.0, stockDetail_commit_pos.y +stockDetail_commit_dim.y/2.0, stockDetail_commit_dim.x, stockDetail_commit_dim.y);
+        fill(255,255,255);
+        textAlign(CENTER, CENTER);
+        textSize(stockDetail_commit_dim.x/4.0);
+        text("Commit", stockDetail_commit_pos.x +stockDetail_commit_dim.x/2.0, stockDetail_commit_pos.y +stockDetail_commit_dim.y/2.0);
+        //Quantity changes
+        textSize(15);           //########## MAKE RELATIVE ############
+        textAlign(LEFT,CENTER);
+        for(int i=0; i<inv_cellNumber; i++){
+            int givenInvInd = i +invIndOffset;
+            if(givenInvInd < ship_inventory.size()){
+                for(int j=0; j<staged_items.size(); j++){
+                    if(staged_items.get(j).name == ship_inventory.get(givenInvInd).name){
+                        fill(80,255,80);
+                        if(staged_items.get(j).quantity < 0.0){
+                            fill(255,80,80);}
+                        text(staged_items.get(j).quantity, cornerPos.x +inv_leftBorder +inv_dim.x +stockDetail_offset, cornerPos.y +inv_border*(i+1) +inv_dim.y*(i) +inv_sizeOfText);
+                    }
+                }
+            }
+            else{
+                break;
+            }
+        }
+        popStyle();
+    }
+    void display_stagedDetails_simple(){
         /*
         Displays a breakdown of the cost + and - summed
         AS WELL AS the increase or decrease of each item beside it
@@ -211,6 +301,12 @@ class stockRecords{
         display_graph_data(givenItem);
     }
     void display_backButton(){
+        pushStyle();
+        imageMode(CORNER);
+        image(texture_general_button_back, backButton_pos.x, backButton_pos.y);
+        popStyle();
+    }
+    void display_backButton_simple(){
         pushStyle();
         rectMode(CORNER);
         fill(30,30,30);

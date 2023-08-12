@@ -328,4 +328,41 @@ class button{
         }
         //...
     }
+    void playSound(){
+        /*
+        Performs the job of the button
+
+        If you want silence for certain clicks e.g zoom, then leave a blank if statement
+
+        #######################################
+        ### MAKE SENSOR & BACK SOFTER SOUNDS ##
+        #######################################
+        */
+        if(buttonType == "flight_launch_fireProbe"){
+            sound_flight_probe_launched.play();}
+        else if(buttonType == "flight_goToSelection"){
+            sound_general_button_back.play();}
+        else if(buttonType == "flight_incrementProbeIndOffset"){
+            sound_general_scroller.play();}
+        else if(buttonType == "flight_incrementOutpostIndOffset"){
+            sound_general_scroller.play();}   //## "" ____> + NEED TO ACTUALLY ADD THIS INTO GAME
+        else if(buttonType == "flight_outpost_mining_drillToggle"){
+            sound_general_click_active.play();}
+        else if(buttonType == "tools_switchRadioStation"){
+            sound_general_click_active.play();}   //## NEEDS A CLICKY, REAL SOUND ##
+        else if(buttonType == "tools_goToSelection"){
+            sound_general_button_back.play();}
+        else if(buttonType == "wheel_cartography_icon_goBack"){
+            sound_general_button_back.play();}
+        else if(buttonType == "wheel_cartography_mode_goBack"){
+            sound_general_button_back.play();}
+        else if(buttonType == "stocks_goToSelection"){
+            sound_general_button_back.play();}
+        else if(buttonType == "stocks_commitStagedItems"){
+            sound_stocks_commitStaged_active.play();}       //## ADD INACTIVE SOUND HERE TOO
+        else if(buttonType == "stocks_incrementInvIndOffset"){
+            sound_general_scroller.play();}
+        else{
+            sound_general_click_active.play();}
+    }
 }

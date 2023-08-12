@@ -1,10 +1,16 @@
+import processing.sound.*;
+
 manager cManager;
 mineralDictionary mineralDict;
 
 void setup(){
-    size(800,500);
+    size(800,500, P2D);
 
     cManager = new manager();
+
+    load_textures();
+    load_sounds();
+
     initMineralDict();
 }
 void draw(){

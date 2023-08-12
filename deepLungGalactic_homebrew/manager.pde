@@ -75,11 +75,16 @@ class manager{
         for(int i=0; i<cToolArray.buttonSet.size(); i++){
             collatedButtons.add( cToolArray.buttonSet.get(i) );}
         //2
+        boolean buttonClickActive = false;
         for(int i=0; i<collatedButtons.size(); i++){
             if( collatedButtons.get(i).inButtonRange( new PVector(mouseX, mouseY) ) ){
+                buttonClickActive = true;
                 collatedButtons.get(i).activate();
+                collatedButtons.get(i).playSound();
                 println("Button clicked!");
             }
         }
+        if(!buttonClickActive){
+            sound_general_click_inactive.play();}
     }
 }

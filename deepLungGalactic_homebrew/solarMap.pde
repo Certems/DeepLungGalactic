@@ -170,6 +170,7 @@ class solarMap{
     void destroyProbe(probe cProbe){
         for(int i=0; i<probes.size(); i++){
             if(probes.get(i).ID == cProbe.ID){
+                sound_flight_probe_destroyed.play();
                 probes.get(i).statusCol = inactiveCol;
                 destroyed_probes.add( probes.get(i) );
                 probes.remove(i);

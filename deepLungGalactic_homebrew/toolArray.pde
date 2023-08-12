@@ -62,7 +62,7 @@ class toolArray{
         zoomOutButton_pos = new PVector(cornerPos.x +0.02*panelDim.x, cornerPos.y +0.1*panelDim.y);
         radio_dim = new PVector(panelDim.x/2.0, panelDim.y/6.0);
         radio_pos = new PVector(cornerPos.x +panelDim.x/2.0 -radio_dim.x/2.0, cornerPos.y +0.8*panelDim.y -radio_dim.y/2.0);
-        back_dim  = new PVector(panelDim.x/6.0, panelDim.y/8.0);
+        back_dim  = new PVector(0.15*panelDim.x, 0.15*panelDim.x);
         back_pos  = new PVector(cornerPos.x +0.75*panelDim.x, cornerPos.y +0.75*panelDim.y);
 
         init_mainWheel();
@@ -99,6 +99,12 @@ class toolArray{
     }
     void display_settingsIcon(){
         pushStyle();
+        imageMode(CORNER);
+        image(texture_tools_selection_settings, settings_pos.x, settings_pos.y);
+        popStyle();
+    }
+    void display_settingsIcon_simple(){
+        pushStyle();
         fill(90,90,90);
         noStroke();
         rectMode(CORNER);
@@ -112,6 +118,12 @@ class toolArray{
     }
     void display_cartographerIcon(){
         pushStyle();
+        imageMode(CORNER);
+        image(texture_tools_selection_cartographer, cartographer_pos.x, cartographer_pos.y);
+        popStyle();
+    }
+    void display_cartographerIcon_simple(){
+        pushStyle();
         fill(90,90,90);
         noStroke();
         rectMode(CORNER);
@@ -124,6 +136,12 @@ class toolArray{
         popStyle();
     }
     void display_radioIcon(){
+        pushStyle();
+        imageMode(CORNER);
+        image(texture_tools_selection_radio, radio_pos.x, radio_pos.y);
+        popStyle();
+    }
+    void display_radioIcon_simple(){
         pushStyle();
         fill(90,90,90);
         noStroke();
@@ -143,6 +161,12 @@ class toolArray{
         //....
     }
     void display_backIcon(){
+        pushStyle();
+        imageMode(CORNER);
+        image(texture_general_button_back ,back_pos.x, back_pos.y);
+        popStyle();
+    }
+    void display_backIcon_simple(){
         pushStyle();
         textSize(20);
         textAlign(CENTER, CENTER);
@@ -171,6 +195,12 @@ class toolArray{
     }
     void display_zoomButtons(){
         pushStyle();
+        imageMode(CORNER);
+        image(texture_tools_cartography_resetZoom, zoomOutButton_pos.x, zoomOutButton_pos.y);
+        popStyle();
+    }
+    void display_zoomButtons_simple(){
+        pushStyle();
         rectMode(CORNER);
         noFill();
         stroke(200,200,200);
@@ -180,6 +210,12 @@ class toolArray{
         popStyle();
     }
     void display_wheelLoad_main(){
+        pushStyle();
+        imageMode(CORNER);
+        image(texture_tools_cartography_toggleWheel, wheelLoad_pos.x, wheelLoad_pos.y);
+        popStyle();
+    }
+    void display_wheelLoad_main_simple(){
         pushStyle();
         fill(180,180,180);
         ellipse(wheelLoad_pos.x, wheelLoad_pos.y, wheelLoad_dim.x, wheelLoad_dim.y);

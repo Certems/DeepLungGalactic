@@ -236,6 +236,30 @@ class cargoTank{
         float unitToPixelConversion = (dim.y) / (sizeOfTank);
         pushStyle();
         rectMode(CORNERS);
+        //Minerals
+        noStroke();
+        float runningHeight = 0.0;
+        for(int i=0; i<storedMinerals.size(); i++){
+            float sectionHeight = storedMinerals.get(i).quantity*unitToPixelConversion;
+            fill(storedMinerals.get(i).colour.x, storedMinerals.get(i).colour.y, storedMinerals.get(i).colour.z);
+            rect(pos.x, pos.y +dim.y -(runningHeight +sectionHeight), pos.x +dim.x, pos.y +dim.y -(runningHeight));
+            runningHeight += sectionHeight;
+        }
+        //Background
+        imageMode(CORNER);
+        image(texture_flight_mining_mineralTank, pos.x, pos.y);
+        popStyle();
+    }
+    void display_simple(PVector pos, PVector dim){
+        /*
+        Display in a stacked arrangment, grouping each material, shown 
+        as a fraction of the total capacity required
+        pos = top-left
+        dim = full width+height
+        */
+        float unitToPixelConversion = (dim.y) / (sizeOfTank);
+        pushStyle();
+        rectMode(CORNERS);
         //Background
         fill(90,90,90);
         stroke(50,50,50);

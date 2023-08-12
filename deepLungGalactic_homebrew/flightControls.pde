@@ -80,7 +80,7 @@ class flightControls{
 
         launchButton_pos = new PVector(cornerPos.x +0.625*panelDim.x, cornerPos.y + panelDim.y/2.0);
         launchButton_dim = new PVector(2.0*panelDim.y/5.0, 2.0*panelDim.y/5.0);
-        backButton_dim   = new PVector(0.15*panelDim.x,0.15*panelDim.y);
+        backButton_dim   = new PVector(0.15*panelDim.x,0.15*panelDim.x);
         backButton_pos   = new PVector(cornerPos.x +0.80*panelDim.x, cornerPos.y +0.80*panelDim.y);
         scroller_dim = new PVector(panelDim.y/7.0, panelDim.y/7.0);
         scroller_pos = new PVector(cornerPos.x +0.88*panelDim.x, cornerPos.y +0.05*panelDim.y);
@@ -159,6 +159,12 @@ class flightControls{
     }
     void display_launchButton(){
         pushStyle();
+        imageMode(CENTER);
+        image(texture_flight_selection_button_launchButton, launchButton_pos.x +launchButton_dim.x/2.0, launchButton_pos.y +launchButton_dim.y/2.0);
+        popStyle();
+    }
+    void display_launchButton_simple(){
+        pushStyle();
         fill(90,90,90);
         noStroke();
         ellipse(launchButton_pos.x +launchButton_dim.x/2.0, launchButton_pos.y +launchButton_dim.y/2.0, launchButton_dim.x, launchButton_dim.y);
@@ -196,6 +202,12 @@ class flightControls{
     }
     void display_probeScroller(){
         pushStyle();
+        imageMode(CENTER);
+        image(texture_general_button_scroller, scroller_pos.x +scroller_dim.x/2.0, scroller_pos.y +scroller_dim.y/2.0);
+        popStyle();
+    }
+    void display_probeScroller_simple(){
+        pushStyle();
         fill(50,50,50);
         noStroke();
         ellipse(scroller_pos.x +scroller_dim.x/2.0, scroller_pos.y +scroller_dim.y/2.0, scroller_dim.x, scroller_dim.y);
@@ -215,6 +227,12 @@ class flightControls{
         display_backButton();
     }
     void display_backButton(){
+        pushStyle();
+        imageMode(CORNER);
+        image(texture_general_button_back, backButton_pos.x, backButton_pos.y);
+        popStyle();
+    }
+    void display_backButton_simple(){
         pushStyle();
         rectMode(CORNER);
         fill(30,30,30);
@@ -248,6 +266,13 @@ class flightControls{
         popStyle();
     }
     void display_probeThrustControls(){
+        pushStyle();
+        imageMode(CORNER);
+        image(texture_flight_controls_thrustCtrl_fwd, thrustCtrl_fwd_pos.x, thrustCtrl_fwd_pos.y);
+        image(texture_flight_controls_thrustCtrl_bck, thrustCtrl_bck_pos.x, thrustCtrl_bck_pos.y);
+        popStyle();
+    }
+    void display_probeThrustControls_simple(){
         pushStyle();
 
         rectMode(CORNER);
@@ -304,6 +329,22 @@ class flightControls{
         This will then result in the sensor (on the left) displaying the given info (AFTER the button has been clicked)
         */
         pushStyle();
+        imageMode(CORNER);
+        image(texture_flight_controls_scanSel, scanSel_pos.x, scanSel_pos.y);
+
+        textSize(scanSel_dim.x/3.0);
+        textAlign(CENTER, CENTER);
+        fill(255);
+        text(givenProbe.dataType, scanSel_pos.x +scanSel_dim.x/2.0, scanSel_pos.y +scanSel_dim.y/2.0);
+
+        popStyle();
+    }
+    void display_probeScanSel_simple(probe givenProbe){
+        /*
+        Displays which data type would like to be selected AND an area to click to begin the scan for this data type
+        This will then result in the sensor (on the left) displaying the given info (AFTER the button has been clicked)
+        */
+        pushStyle();
 
         //Bounding box
         //rectMode(CORNER);
@@ -325,6 +366,16 @@ class flightControls{
         popStyle();
     }
     void display_probeScanEngage(){
+        /*
+        Displays which data type would like to be selected AND an area to click to begin the scan for this data type
+        This will then result in the sensor (on the left) displaying the given info (AFTER the button has been clicked)
+        */
+        pushStyle();
+        imageMode(CORNER);
+        image(texture_flight_controls_scanEngage, scanEngage_pos.x, scanEngage_pos.y);
+        popStyle();
+    }
+    void display_probeScanEngage_simple(){
         /*
         Displays which data type would like to be selected AND an area to click to begin the scan for this data type
         This will then result in the sensor (on the left) displaying the given info (AFTER the button has been clicked)
@@ -356,6 +407,12 @@ class flightControls{
     }
     void display_launchReleaseButton(){
         pushStyle();
+        imageMode(CORNER);
+        image(texture_flight_launch_launchRelease, launchRelease_pos.x, launchRelease_pos.y);
+        popStyle();
+    }
+    void display_launchReleaseButton_simple(){
+        pushStyle();
         rectMode(CORNER);
         stroke(30,30,30);
         strokeWeight(2);
@@ -374,6 +431,12 @@ class flightControls{
     }
     void display_drillToggle(){
         pushStyle();
+        imageMode(CORNER);
+        image(texture_flight_mining_drillToggle, drillToggle_pos.x, drillToggle_pos.y);
+        popStyle();
+    }
+    void display_drillToggle_simple(){
+        pushStyle();
         rectMode(CORNER);
         stroke(30,30,30);
         strokeWeight(2);
@@ -386,6 +449,12 @@ class flightControls{
     }
     void display_audioQuick(){
         pushStyle();
+        imageMode(CENTER);
+        image(texture_flight_mining_audioQuick, audioQuick_pos.x +audioQuick_dim.x/2.0, audioQuick_pos.y +audioQuick_dim.y/2.0);
+        popStyle();
+    }
+    void display_audioQuick_simple(){
+        pushStyle();
         stroke(30,30,30);
         strokeWeight(2);
         fill(70,70,70);
@@ -394,6 +463,12 @@ class flightControls{
     }
     void display_mineralQuick(){
         pushStyle();
+        imageMode(CENTER);
+        image(texture_flight_mining_mineralQuick, mineralQuick_pos.x +mineralQuick_dim.x/2.0, mineralQuick_pos.y +mineralQuick_dim.y/2.0);
+        popStyle();
+    }
+    void display_mineralQuick_simple(){
+        pushStyle();
         stroke(30,30,30);
         strokeWeight(2);
         fill(70,70,70);
@@ -401,6 +476,12 @@ class flightControls{
         popStyle();
     }
     void display_transportMinerals(){
+        pushStyle();
+        imageMode(CENTER);
+        image(texture_flight_mining_transport, transport_pos.x +transport_dim.x/2.0, transport_pos.y +transport_dim.y/2.0);
+        popStyle();
+    }
+    void display_transportMinerals_simple(){
         pushStyle();
         stroke(30,30,30);
         strokeWeight(2);
@@ -638,6 +719,31 @@ class dispCell{
             infoText = str(cOutpost.ID);}
     }
     void display(){
+        /*
+        IndNumber used to specify which location this cell appears in in the list
+        StartPos refers to where the 1st cell is drawn from -> all others relative to that
+        */
+        pushStyle();
+        //Bounding rect
+        imageMode(CORNER);
+        image(texture_flight_selection_probe_selectionBox, pos.x, pos.y, dim.x, dim.y);
+
+        //Info text
+        fill(255,255,255);
+        textAlign(LEFT,CENTER);
+        textSize(sizeOfText);
+        text(infoText, pos.x, pos.y +sizeOfText);
+
+        //Status icon
+        fill(0,0,0);    //**Bug fixer basically
+        if(cProbe != null){
+            fill(cProbe.statusCol.x, cProbe.statusCol.y, cProbe.statusCol.z);}
+        if(cOutpost != null){
+            fill(cOutpost.statusCol.x, cOutpost.statusCol.y, cOutpost.statusCol.z);}
+        ellipse(pos.x +sizeOfIcon/2.0, pos.y +sizeOfIcon/2.0, sizeOfIcon, sizeOfIcon);
+        popStyle();
+    }
+    void display_simple(){
         /*
         IndNumber used to specify which location this cell appears in in the list
         StartPos refers to where the 1st cell is drawn from -> all others relative to that
