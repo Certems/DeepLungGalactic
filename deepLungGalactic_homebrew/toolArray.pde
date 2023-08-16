@@ -44,6 +44,8 @@ class toolArray{
     PVector radio_pos;
     PVector back_dim;
     PVector back_pos;
+    PVector timer_dim;
+    PVector timer_pos;
 
     cartography_main_wheel wheel_main;
     cartographyMap cartoMap;
@@ -53,17 +55,19 @@ class toolArray{
         this.panelDim  = panelDim;
 
         settings_dim = new PVector(panelDim.x/2.0, panelDim.y/6.0);
-        settings_pos = new PVector(cornerPos.x +panelDim.x/2.0 -settings_dim.x/2.0, cornerPos.y +0.2*panelDim.y -settings_dim.y/2.0);
+        settings_pos = new PVector(cornerPos.x +panelDim.x/2.0 -settings_dim.x/2.0, cornerPos.y +0.15*panelDim.y -settings_dim.y/2.0);
         cartographer_dim = new PVector(panelDim.x/2.0, panelDim.y/6.0);
-        cartographer_pos = new PVector(cornerPos.x +panelDim.x/2.0 -cartographer_dim.x/2.0, cornerPos.y +0.5*panelDim.y -cartographer_dim.y/2.0);
+        cartographer_pos = new PVector(cornerPos.x +panelDim.x/2.0 -cartographer_dim.x/2.0, cornerPos.y +0.4*panelDim.y -cartographer_dim.y/2.0);
         wheelLoad_dim = new PVector(panelDim.y/8.0, panelDim.y/8.0);
         wheelLoad_pos = new PVector(cornerPos.x +0.05*panelDim.x, cornerPos.y +0.8*panelDim.y);
         zoomOutButton_dim = new PVector(0.12*panelDim.y, 0.15*panelDim.y);
         zoomOutButton_pos = new PVector(cornerPos.x +0.02*panelDim.x, cornerPos.y +0.1*panelDim.y);
         radio_dim = new PVector(panelDim.x/2.0, panelDim.y/6.0);
-        radio_pos = new PVector(cornerPos.x +panelDim.x/2.0 -radio_dim.x/2.0, cornerPos.y +0.8*panelDim.y -radio_dim.y/2.0);
+        radio_pos = new PVector(cornerPos.x +panelDim.x/2.0 -radio_dim.x/2.0, cornerPos.y +0.65*panelDim.y -radio_dim.y/2.0);
         back_dim  = new PVector(0.15*panelDim.x, 0.15*panelDim.x);
-        back_pos  = new PVector(cornerPos.x +0.75*panelDim.x, cornerPos.y +0.75*panelDim.y);
+        back_pos  = new PVector(cornerPos.x +0.8*panelDim.x, cornerPos.y +panelDim.y -0.2*panelDim.x);
+        timer_dim = new PVector(panelDim.x/3.0, panelDim.y/8.0);
+        timer_pos = new PVector(cornerPos.x +panelDim.x/2.0, cornerPos.y +0.9*panelDim.y -timer_dim.y/2.0);
 
         init_mainWheel();
         init_cartographyMap();
@@ -93,6 +97,7 @@ class toolArray{
         display_settingsIcon();
         display_cartographerIcon();
         display_radioIcon();
+        display_timer();
     }
     void display_backgroundAnimation(){
         //pass
@@ -153,6 +158,25 @@ class toolArray{
         textAlign(CENTER, CENTER);
         text("Radio", radio_pos.x +radio_dim.x/2.0, radio_pos.y +radio_dim.y/2.0);
         popStyle();
+    }
+    void display_timer(){
+        pushStyle();
+
+        textAlign(CENTER, CENTER);
+        textSize(0.8*timer_dim.y);
+        fill(255,255,255);
+        PVector timeInMins = convertFromSecondsToMinutes(roundTo1dp(cManager.cOutroScreen.timer/60.0));
+        text(str(timeInMins.x) +" : "+str(timeInMins.y), timer_pos.x, timer_pos.y);       //### CONVERT TO MINUTE CLOCK ###
+
+        popStyle();
+    }
+    PVector convertFromSecondsToMinutes(float givenSeconds){
+        /*
+        Takes a set amount of seconds, converts it to;
+        [mins] [secs]
+        X         Y
+        */
+        return new PVector(int(floor(givenSeconds/60.0)), int(floor(givenSeconds%60.0)));
     }
     //Settings
     void display_settings(){

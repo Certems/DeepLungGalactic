@@ -57,7 +57,7 @@ class stockRecords{
         inv_sizeOfText = inv_dim.y/2.0;
 
         backButton_dim = new PVector(0.15*panelDim.x,0.15*panelDim.x);
-        backButton_pos = new PVector(cornerPos.x +0.80*panelDim.x, cornerPos.y +0.80*panelDim.y);
+        backButton_pos = new PVector(cornerPos.x +0.80*panelDim.x, cornerPos.y +panelDim.y -0.2*panelDim.x);
         scroller_dim = new PVector(panelDim.y/7.0, panelDim.y/7.0);
         scroller_pos = new PVector(cornerPos.x +0.88*panelDim.x, cornerPos.y +0.83*panelDim.y);
         stockDetail_dim = new PVector(0.2*panelDim.x, 0.45*panelDim.y);
@@ -70,6 +70,7 @@ class stockRecords{
 
         initShipInventory();
         initStockExchange();
+        initStockRecords(30);
     }
 
     //Display
@@ -200,13 +201,15 @@ class stockRecords{
         fill(255,255,255);
         text(totalValue, stockDetail_pos.x +sizeOfText/2.0, stockDetail_pos.y +2.0*stockDetail_dim.y/3.0 +sizeOfText/2.0);
         //Commit button
-        fill(60,60,60);
-        noStroke();
-        ellipse(stockDetail_commit_pos.x +stockDetail_commit_dim.x/2.0, stockDetail_commit_pos.y +stockDetail_commit_dim.y/2.0, stockDetail_commit_dim.x, stockDetail_commit_dim.y);
-        fill(255,255,255);
-        textAlign(CENTER, CENTER);
-        textSize(stockDetail_commit_dim.x/4.0);
-        text("Commit", stockDetail_commit_pos.x +stockDetail_commit_dim.x/2.0, stockDetail_commit_pos.y +stockDetail_commit_dim.y/2.0);
+        imageMode(CENTER);
+        image(texture_stocks_selection_stockDetail_commit, stockDetail_commit_pos.x +stockDetail_commit_dim.x/2.0, stockDetail_commit_pos.y +stockDetail_commit_dim.y/2.0);
+        //fill(60,60,60);
+        //noStroke();
+        //ellipse(stockDetail_commit_pos.x +stockDetail_commit_dim.x/2.0, stockDetail_commit_pos.y +stockDetail_commit_dim.y/2.0, stockDetail_commit_dim.x, stockDetail_commit_dim.y);
+        //fill(255,255,255);
+        //textAlign(CENTER, CENTER);
+        //textSize(stockDetail_commit_dim.x/4.0);
+        //text("Commit", stockDetail_commit_pos.x +stockDetail_commit_dim.x/2.0, stockDetail_commit_pos.y +stockDetail_commit_dim.y/2.0);
         //Quantity changes
         textSize(15);           //########## MAKE RELATIVE ############
         textAlign(LEFT,CENTER);
@@ -420,6 +423,11 @@ class stockRecords{
         values.get(0).add(1.2);            values.get(1).add(0.6);            values.get(2).add(3.3);            values.get(3).add(82.0);
 
         stockExchange = new stringArrayDictionary(keys, values);
+    }
+    void initStockRecords(int evolveNumber){
+        for(int i=0; i<evolveNumber; i++){
+            stockExchange_evolvePrice();
+        }
     }
     void stockExchange_evolvePrice(){
         /*

@@ -34,6 +34,9 @@ void keyPressed(){
     if(key == '5'){
         file4.stop();}
 }
+void mousePressed(){
+  file1.play();
+}
 
 void play_collection_1(){
     //pass

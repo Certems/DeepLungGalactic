@@ -4,7 +4,9 @@ manager cManager;
 mineralDictionary mineralDict;
 
 void setup(){
-    size(800,500, P2D);
+    //size(800,500, P2D);
+    fullScreen(P2D);
+    orientation(LANDSCAPE);
 
     cManager = new manager();
 
@@ -115,6 +117,14 @@ void keyPressed(){
     if(key == 'm'){
         println("Moving cartoMap DOWN...");
         cManager.cToolArray.cartoMap.visiblePos.y -= 0.5;
+    }
+    if(key == 'z'){
+        println("Timer +1 min");
+        cManager.cOutroScreen.timer += 60.0*60.0;
+    }
+    if(key == 'x'){
+        println("Timer +10 secs");
+        cManager.cOutroScreen.timer += 60.0*10.0;
     }
 }
 void mousePressed(){

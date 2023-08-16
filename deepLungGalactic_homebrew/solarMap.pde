@@ -18,7 +18,7 @@ class solarMap{
     float PixelToAuSF;
 
     float temp_noiseRange = 400;   //Kelvin temperature range from sensor imperfections
-    float temp_maxValue   = 4000; //Largest value (in kelvin) the sensor can detect (when it maxes to 1.0)
+    float temp_maxValue   = 4000;  //Largest value (in kelvin) the sensor can detect (when it maxes to 1.0)
 
     solarMap(float mapRadius){
         this.mapRadius = mapRadius;
@@ -30,9 +30,37 @@ class solarMap{
     void calc(){
         calcOutposts();
         calcProbes();
+        calcTimer(cManager.cOutroScreen);
+        calcStockRates();
+        calcGameEnd();
+    }
+    void calcStockRates(){
+        if(floor(cManager.cOutroScreen.timer) % (10*60) == 0){
+            cManager.cStockRecords.stockExchange_evolvePrice();
+        }
     }
     void calcOutposts(){
         calcOutpostDrilling();
+        if(floor(cManager.cOutroScreen.timer) % (2*60) == 0){
+            calcOutpost_aliens();
+            calcOutpost_destruction();}
+        if(floor(cManager.cOutroScreen.timer) % (3*60) == 0){
+            calcNestDrilling();}
+    }
+    void calcOutpost_aliens(){
+        for(int i=0; i<outposts.size(); i++){
+            outposts.get(i).calcAlienAttack();
+        }
+    }
+    void calcNestDrilling(){
+        for(int i=0; i<outposts.size(); i++){
+            outposts.get(i).updateNestsDrilled();
+        }
+    }
+    void calcOutpost_destruction(){
+        for(int i=0; i<outposts.size(); i++){
+            outposts.get(i).calcDestruction(this);
+        }
     }
     void calcOutpostDrilling(){
         for(int i=0; i<outposts.size(); i++){
@@ -47,6 +75,15 @@ class solarMap{
         for(int i=0; i<probes.size(); i++){
             probes.get(i).calcDynamics(this);
             probes.get(i).checkForLanding(this);    //## MAKE EVERY X FRAMES TO REDUCE LAG ##
+        }
+    }
+    void calcTimer(outroScreen cOutroScreen){
+        cOutroScreen.timer++;
+    }
+    void calcGameEnd(){
+        int checkInterval = 2*60;   //2 Seconds
+        if(floor(cManager.cOutroScreen.timer) % checkInterval == 0){
+            cManager.cOutroScreen.isActive = cManager.cOutroScreen.isGameEnd();
         }
     }
 
@@ -167,6 +204,7 @@ class solarMap{
         }
         return totalRemoved;
     }
+
     void destroyProbe(probe cProbe){
         for(int i=0; i<probes.size(); i++){
             if(probes.get(i).ID == cProbe.ID){
@@ -186,6 +224,27 @@ class solarMap{
         }
         //## MAYBE GENERATE DISP CELLS HERE IF IS A PROBLEM ##
     }
+    void destroyOutpost(outpost cOutpost){
+        for(int i=0; i<outposts.size(); i++){
+            if(outposts.get(i).ID == cOutpost.ID){
+                sound_flight_probe_destroyed.play();    //## MAY WANT AN OUTPOST ONE TOO ##
+                outposts.get(i).statusCol = inactiveCol;
+                destroyed_outposts.add( outposts.get(i) );
+                outposts.remove(i);
+                cManager.cOutroScreen.outpostsDestroyed++;  //**For end game condition
+            }
+        }
+        //## MAYBE GENERATE DISP CELLS HERE IF IS A PROBLEM ##
+    }
+    void dismissOutpost(outpost cOutpost){
+        for(int i=0; i<destroyed_outposts.size(); i++){
+            if(destroyed_outposts.get(i).ID == cOutpost.ID){
+                destroyed_outposts.remove(i);
+            }
+        }
+        //## MAYBE GENERATE DISP CELLS HERE IF IS A PROBLEM ##
+    }
+
     PVector calcGravity(PVector point){
         /*
         Calculates the gravity from all planets summed

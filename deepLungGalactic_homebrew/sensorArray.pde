@@ -155,8 +155,9 @@ class sensorArray{
         /*
         1. Create a blank area (in sensorData) of specified size (may be different to resolution the world works on)
         2. Add a temp -> noise close to 0 for general space
-        3. Add a temp -> temp of planets with BOUNDING BOX in range
-        3.5.    MAYBE -> add temp from nodes to create some variation
+        3.1 Add a temp  -> temp of planets CORE with BOUNDING BOX in range
+        3.2             -> temp from nests
+        3.3             -> temp added together
 
         Temp of planets stored in planets
         */
@@ -183,10 +184,17 @@ class sensorArray{
                 for(int j=0; j<sensorData.size(); j++){
                     for(int i=0; i<sensorData.get(j).size(); i++){
                         PVector targetPos = new PVector(cProbe.pos.x -cProbe.scanDim.x/2.0 +i*sizeOfX_Interval, cProbe.pos.y -cProbe.scanDim.y/2.0 +j*sizeOfY_Interval);
-                        float newValue = cSolarMap.spaceBodies.get(p).coreTemp*calcFalloff(cSolarMap.spaceBodies.get(p).tempFalloffType, cSolarMap.spaceBodies.get(p).pos, targetPos);
+                        float nestTemp = 0.0;
+                        float coreTemp = 0.0;
                         float oldValue = sensorData.get(j).get(i);
+                        //3.1 -> Through all nests
+                        for(int z=0; z<cSolarMap.spaceBodies.get(p).alienNests.size(); z++){
+                            nestTemp = cSolarMap.spaceBodies.get(p).alienNests.get(z).temp*calcFalloff("r^-3", new PVector(cSolarMap.spaceBodies.get(p).pos.x +cSolarMap.spaceBodies.get(p).alienNests.get(z).pos.x, cSolarMap.spaceBodies.get(p).pos.y +cSolarMap.spaceBodies.get(p).alienNests.get(z).pos.y), targetPos);}
+                        //3.2 -> For planet core
+                        coreTemp = cSolarMap.spaceBodies.get(p).coreTemp*calcFalloff(cSolarMap.spaceBodies.get(p).tempFalloffType, cSolarMap.spaceBodies.get(p).pos, targetPos);
+                        //3.3 -> Bring all together
                         sensorData.get(j).remove(i);
-                        sensorData.get(j).add(i, newValue+oldValue);
+                        sensorData.get(j).add(i, oldValue +nestTemp +coreTemp);
                     }
                 }
             }

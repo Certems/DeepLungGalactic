@@ -13,7 +13,10 @@ PImage texture_flight_mining_drillToggle;
 PImage texture_flight_mining_mineralTank;
 PImage texture_flight_mining_audioQuick;
 PImage texture_flight_mining_mineralQuick;
+PImage texture_flight_mining_tempQuick;
 PImage texture_flight_mining_transport;
+PImage texture_flight_mining_lock;
+PImage texture_flight_mining_lockIndicator;
 PImage texture_stocks_selection_inv;
 PImage texture_stocks_selection_stockDetail;
 PImage texture_stocks_selection_stockDetail_commit;
@@ -78,7 +81,10 @@ void load_textures_flight(){
     texture_flight_mining_mineralTank  = loadImage("mineralTank.png");
     texture_flight_mining_audioQuick   = loadImage("audioQuick.png");
     texture_flight_mining_mineralQuick = loadImage("mineralQuick.png");
+    texture_flight_mining_tempQuick    = loadImage("tempQuick.png");
     texture_flight_mining_transport    = loadImage("transportToShip.png");
+    texture_flight_mining_lock         = loadImage("lock.png");
+    texture_flight_mining_lockIndicator= loadImage("lockIndicator.png");
     texture_flight_selection_button_launchButton.resize(floor(cManager.cFlightControls.launchButton_dim.x), floor(cManager.cFlightControls.launchButton_dim.y));
     texture_flight_controls_thrustCtrl_fwd.resize(floor(cManager.cFlightControls.thrustCtrl_dim.x), floor(cManager.cFlightControls.thrustCtrl_dim.y));
     texture_flight_controls_thrustCtrl_bck.resize(floor(cManager.cFlightControls.thrustCtrl_dim.x), floor(cManager.cFlightControls.thrustCtrl_dim.y));
@@ -89,7 +95,10 @@ void load_textures_flight(){
     texture_flight_mining_mineralTank.resize(floor(cManager.cFlightControls.mineralTank_dim.x), floor(cManager.cFlightControls.mineralTank_dim.y));
     texture_flight_mining_audioQuick.resize(floor(cManager.cFlightControls.audioQuick_dim.x), floor(cManager.cFlightControls.audioQuick_dim.y));
     texture_flight_mining_mineralQuick.resize(floor(cManager.cFlightControls.mineralQuick_dim.x), floor(cManager.cFlightControls.mineralQuick_dim.y));
+    texture_flight_mining_tempQuick.resize(floor(cManager.cFlightControls.tempQuick_dim.x), floor(cManager.cFlightControls.tempQuick_dim.y));
     texture_flight_mining_transport.resize(floor(cManager.cFlightControls.transport_dim.x), floor(cManager.cFlightControls.transport_dim.y));
+    texture_flight_mining_lock.resize(floor(cManager.cFlightControls.lock_dim.x), floor(cManager.cFlightControls.lock_dim.y));
+    texture_flight_mining_lockIndicator.resize(floor(cManager.cFlightControls.lockIndicator_dim.x), floor(cManager.cFlightControls.lockIndicator_dim.y));
 }
 
 void load_textures_stocks(){

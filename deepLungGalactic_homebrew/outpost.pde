@@ -19,6 +19,7 @@ class outpost{
     */
     int ID = floor(random(1000000,9999999));
 
+    boolean locked         = false; //Locking stops drilling, but makes you immune to aliens (resistance wont go down)
     boolean drillAngChosen = false;
     boolean isDrilling     = false;
     int drillCounter  = 0;
@@ -35,6 +36,8 @@ class outpost{
     float angleOffsetRange = PI/16.0;       //Max absolute angle offset from the normal that is allow
     float angleOffset = PI/20.0;
     float drillPower  = 1.0;                //Relates quantity drilled to the material type
+
+    float resistance = 100.0;   //How much it can resist chase from aliens -> this number is wittled down
 
     interactable miningSlider = new interactable("slider");
 
@@ -64,10 +67,73 @@ class outpost{
             textAlign(CENTER, CENTER);
             text(i,nodeSize*drillTargets.get(i).x +nodeSize, nodeSize*drillTargets.get(i).y +nodeSize);
         }
+        float AuToPixelSF = nodeSize/linkedBody.mineralCellWidth;
+        for(int i=0; i<linkedBody.alienNests.size(); i++){
+            PVector position   = new PVector(linkedBody.alienNests.get(i).pos.x*AuToPixelSF +linkedBody.radius*AuToPixelSF, linkedBody.alienNests.get(i).pos.y*AuToPixelSF +linkedBody.radius*AuToPixelSF);
+            PVector dimensions = new PVector(2.0*linkedBody.alienNests.get(i).size*AuToPixelSF, 2.0*linkedBody.alienNests.get(i).size*AuToPixelSF);
+            fill(98, 50, 168);
+            if(linkedBody.alienNests.get(i).isDrilled){
+                fill(250,40,40);}
+            noStroke();
+            ellipse(position.x, position.y, dimensions.x, dimensions.y);
+        }
         popStyle();
     }
     //## FOR BUGFIXING
 
+    void calcAlienAttack(){
+        /*
+        Changes the outpost's resistance according to the nests located nearby
+        This is checked roughly every 2 seconds => base resistanceLoss scaling off this
+        
+        1. Finds nests in range
+        2. Finds distance to those nests
+        3. Calculates culative resistance loss
+        4. Adjust for loss
+        */
+        if(!locked){
+            float resistanceSF = 0.05;
+            float resistanceLoss = 0.0;
+            //1&2
+            float agroRange = 0.8*linkedBody.radius;
+            for(int i=0; i<linkedBody.alienNests.size(); i++){
+                float dist = vec_mag(vec_dir(pos, linkedBody.alienNests.get(i).pos));
+                if(dist <= agroRange){
+                    //3
+                    resistanceLoss += resistanceSF*(1.0 -(dist/agroRange));
+                }
+            }
+            //4
+            resistance -= resistanceLoss;
+        }
+    }
+    void calcDestruction(solarMap cSolarMap){
+        if(resistance <= 0.0){
+            cSolarMap.destroyOutpost(this);
+        }
+    }
+    void updateNestsDrilled(){
+        /*
+        Checks if a nest has been drilled
+        Marked as you go, so same nest cannot be drilled twice
+        Applies the chase multiplier if hasnt been drilled
+        */
+        if(drillTargets.size() > 0){       //If drilling has ACTUALLY started
+            for(int i=0; i<linkedBody.alienNests.size(); i++){
+                if(!linkedBody.alienNests.get(i).isDrilled){
+                    PVector cDrillTargetCoord = new PVector(drillTargets.get(0).x*linkedBody.mineralCellWidth -linkedBody.radius, drillTargets.get(0).y*linkedBody.mineralCellWidth -linkedBody.radius);   //Coord (in relative coords to body centre) of CURRENT drill target
+                    PVector drillDir = vec_unitDir(pos, drillPoint);
+                    PVector perp_p1 = new PVector(linkedBody.alienNests.get(i).pos.x -linkedBody.alienNests.get(i).size*drillDir.y, linkedBody.alienNests.get(i).pos.y +linkedBody.alienNests.get(i).size*drillDir.x); //Find the line perpendicular to the drill, that spans the width of alien nest
+                    PVector perp_q1 = new PVector(linkedBody.alienNests.get(i).pos.x +linkedBody.alienNests.get(i).size*drillDir.y, linkedBody.alienNests.get(i).pos.y -linkedBody.alienNests.get(i).size*drillDir.x);
+                    boolean drillColliding = checkLineLineCollision(pos, cDrillTargetCoord, perp_p1, perp_q1);  //...With this nest
+                    if(drillColliding){
+                        linkedBody.alienNests.get(i).isDrilled = true;
+                        linkedBody.alienNests.get(i).chase *= linkedBody.alienNests.get(i).drillFactor;
+                    }
+                }
+            }
+        }
+    }
     void calcDrilling(){
         if(isDrilling){
             if(drillCounter >= drillInterval){
@@ -215,6 +281,11 @@ class outpost{
             cStockRecords.addItem(givenItem, cStockRecords.ship_inventory);
         }
         cCargo.storedMinerals.clear();
+    }
+
+    void lockOutpost(){
+        locked = true;
+        isDrilling = false;
     }
 }
 

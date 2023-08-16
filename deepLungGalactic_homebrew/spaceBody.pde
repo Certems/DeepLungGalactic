@@ -15,6 +15,7 @@ class spaceBody{
     float coreTemp;         //Central temperature of body's core
     String tempFalloffType; //How the temperature of the core is reflected as a function of distance
 
+    ArrayList<alienNest> alienNests = new ArrayList<alienNest>();
     ArrayList<ArrayList<mineral>> mineralSet = new ArrayList<ArrayList<mineral>>();
     int sizeOfMineralDepo = 20;     //How many cells in width and height of the bounding box for the body
     float mineralCellWidth;         //Size in terms of AU of each cell
@@ -31,6 +32,7 @@ class spaceBody{
         mineralCellWidth = (2.0*radius) / (sizeOfMineralDepo);
         mass = 1.0*pow(radius, 3);
         
+        generateAlienNests( floor(random(0.0, 5.0)) );
         generateMinerals(3);
     }
 
@@ -49,6 +51,17 @@ class spaceBody{
         float mag = getGravityMag(point, pos, mass);
         PVector force = new PVector(mag*uDir.x, mag*uDir.y);
         return force;
+    }
+    void generateAlienNests(int nestNumber){
+        alienNests.clear();
+        float nestSizeMax = 0.15;
+        for(int i=0; i<nestNumber; i++){
+            float theta     = random(0.0, 2.0*PI);
+            float spawnDist = random(0.1*radius, 0.9*radius);
+            float nestSize  = random(0.1*nestSizeMax, nestSizeMax);
+            alienNest newNest = new alienNest( new PVector(spawnDist*cos(theta), spawnDist*sin(theta)), nestSize);
+            alienNests.add(newNest);
+        }
     }
     void generateMinerals(int nodeNumber){
         /*
@@ -177,4 +190,42 @@ float getGravityMag(PVector p1, PVector p2, float m2){
     float constant = 1.5*pow(10, -5);       //WAS 2 NOw ...
     float dist     = vec_mag(vec_dir(p1, p2));
     return constant*m2*exp(-0.05*pow(dist,2));   //**Adjust values
+}
+
+class alienNest{
+    /*
+    Where aliens attack from
+    The proximity of this to an outpost determines how quickly it will 'chase' the outpost (+a bit of randomness)
+
+    Digging through a nest will play a sound and dramatically increase a nest's chase speed
+    
+    pos  = relative position to the centre of the body it is located on
+    size = determines how quickly they chase outposts
+    */
+    boolean isDrilled = false;
+
+    PVector pos;
+    float size;
+    float chase = 0.0;
+
+    float temp = 500.0;
+    float drillFactor = 3.0;    //Once drilled, the chase of this nest will be multipled by this factor (can only be applied ONCE)
+
+    alienNest(PVector pos, float size){
+        this.pos = pos;
+        this.size = size;
+        calcInitChase();
+    }
+
+    void calcInitChase(){
+        /*
+        This is the initial chase
+        This is only set at creation
+        Once this nest is drilled through, the current chase will be multiplied and left alone
+
+        chase*(1/dist) => outpost progress
+        */
+        float modifier = 0.01;
+        chase = modifier*size;
+    }
 }

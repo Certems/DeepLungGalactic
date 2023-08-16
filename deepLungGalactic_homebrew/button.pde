@@ -185,15 +185,26 @@ class button{
             relatedProbe.vel.y -= thrust*dir.x;
         }
         if(buttonType == "flight_outpost_mining_drillToggle"){
-            relatedOutpost.isDrilling = !relatedOutpost.isDrilling;
-            if(!relatedOutpost.drillAngChosen){   //If a dig angle hasnt been chosen yet...
-                //Lock in the drill angle AND calculate the drill targets
-                relatedOutpost.angleOffset = relatedOutpost.findAngleOffset(cManager.cFlightControls.miningSlider_pos, cManager.cFlightControls.miningSlider_dim); //**Only time the angle offset is ever changed
-                relatedOutpost.calcDrillTargets();
-                //Then disable the slider
-                relatedOutpost.miningSlider.isVisible = false;
-                relatedOutpost.drillAngChosen = true;
+            if(!relatedOutpost.locked){
+                relatedOutpost.isDrilling = !relatedOutpost.isDrilling;
+                if(!relatedOutpost.drillAngChosen){   //If a dig angle hasnt been chosen yet...
+                    //Lock in the drill angle AND calculate the drill targets
+                    relatedOutpost.angleOffset = relatedOutpost.findAngleOffset(cManager.cFlightControls.miningSlider_pos, cManager.cFlightControls.miningSlider_dim); //**Only time the angle offset is ever changed
+                    relatedOutpost.calcDrillTargets();
+                    //Then disable the slider
+                    relatedOutpost.miningSlider.isVisible = false;
+                    relatedOutpost.drillAngChosen = true;
+                }
             }
+        }
+        if(buttonType == "flight_outpost_mining_lockOutpost"){
+            relatedOutpost.locked = true;   //Can only lock, CANNOT unlock (thats the whole point)
+        }
+        if(buttonType == "flight_outpost_mining_tempQuick"){
+            probe generatedProbe = new probe(relatedOutpost.linkedBody.pos, new PVector(0,0), new PVector(0,0));
+            generatedProbe.scanDim = new PVector(2.0*relatedOutpost.linkedBody.radius, 2.0*relatedOutpost.linkedBody.radius);   //### MAY NOT BE NEEDED ##
+            cManager.cSensorArray.recordReadings(generatedProbe, 1);
+            cManager.cSensorArray.cDataType = 1;
         }
         if(buttonType == "flight_outpost_mining_mineralTankInfoReveal"){
             //pass

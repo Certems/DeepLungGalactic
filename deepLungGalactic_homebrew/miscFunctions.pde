@@ -106,6 +106,12 @@ float getSmallestElem(ArrayList<ArrayList<Float>> matrix){
 
 float calcFalloff(String falloffType, PVector centralPos, PVector targetPos){
     float valuePercent = 0.0;
+    if(falloffType == "r^-3"){
+        float r = vec_mag(vec_dir(centralPos, targetPos));
+        if(r != 0.0){
+            valuePercent = pow(r, -3);
+        }
+    }
     if(falloffType == "r^-2"){
         float r = vec_mag(vec_dir(centralPos, targetPos));
         if(r != 0.0){
@@ -176,4 +182,21 @@ boolean checkLineLineCollision(PVector p1, PVector q1, PVector p2, PVector q2){
     boolean alphaInRange = (0 <= alpha) && (alpha <= alphaEnd);
     boolean betaInRange  = (0 <=  beta) && ( beta <= betaEnd);
     return (alphaInRange && betaInRange);
+}
+
+void displayTextLog(ArrayList<String> textLog, float sizeOfText, PVector pos){
+    /*
+    Pos = Top-Left corner
+    each element of array is a new line in text
+    */
+    pushStyle();
+
+    textSize(sizeOfText);
+    textAlign(LEFT);
+    fill(255,255,255);
+    for(int i=0; i<textLog.size(); i++){
+        text(textLog.get(i), pos.x, pos.y +i*sizeOfText);
+    }
+
+    popStyle();
 }

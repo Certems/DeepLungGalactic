@@ -1,4 +1,6 @@
 class manager{
+    introScreen cIntroScreen = new introScreen();
+
     solarMap cSolarMap = new solarMap(fullMapRadius);
 
     sensorArray cSensorArray        = new sensorArray(      new PVector(0,0),                   new PVector(width/2.0, height/2.0) );
@@ -6,11 +8,29 @@ class manager{
     stockRecords cStockRecords      = new stockRecords(     new PVector(0,height/2.0),          new PVector(width/2.0, height/2.0) );
     toolArray cToolArray            = new toolArray(        new PVector(width/2.0,height/2.0),  new PVector(width/2.0, height/2.0) );
 
+    outroScreen cOutroScreen = new outroScreen();
+
     manager(){
         //pass
     }
 
     void display(){
+        if(cOutroScreen.isActive){
+            cOutroScreen.display();}
+        else if(cIntroScreen.isActive){
+            cIntroScreen.display();}
+        else{
+            display_panels();}
+    }
+    void calc(){
+        if(cOutroScreen.isActive){
+            cOutroScreen.calc();}
+        else if(cIntroScreen.isActive){
+            cIntroScreen.calc();}
+        else{
+            calc_panels();}
+    }
+    void display_panels(){
         /*
         Note here; Each panel will individually discriminate if certain parts need to be redrawn each 
             frame, so the manager can just ask them to draw what they respectively consider important
@@ -25,7 +45,7 @@ class manager{
         //if(cSolarMap.outposts.size() > 0){                          //
         //    cSolarMap.outposts.get(0).displayTargets();}            //
     }
-    void calc(){
+    void calc_panels(){
         cSolarMap.calc();
         cSensorArray.calc();
         cStockRecords.calc();
@@ -37,11 +57,17 @@ class manager{
         ## COULD HAVE A QUADRANT CHECK HERE, SO ONLY CHECKS RELEVENT CLASS
         ###############################
         */
-        checkButtonsClicked();
-        cSensorArray.sensor_mousePressed();
-        cFlightControls.flight_mousePressed();
-        cStockRecords.stocks_mousePressed();
-        cToolArray.tools_mousePressed();
+        if(cOutroScreen.isActive){
+            cOutroScreen.outroScreen_mousePressed();}
+        else if(cIntroScreen.isActive){
+            cIntroScreen.introScreen_mousePressed();}
+        else{
+            checkButtonsClicked();
+            cSensorArray.sensor_mousePressed();
+            cFlightControls.flight_mousePressed();
+            cStockRecords.stocks_mousePressed();
+            cToolArray.tools_mousePressed();
+        }
     }
     void manager_mouseReleased(){
         /*
@@ -49,10 +75,16 @@ class manager{
         ## COULD HAVE A QUADRANT CHECK HERE, SO ONLY CHECKS RELEVENT CLASS
         ###########################
         */
-        cSensorArray.sensor_mouseReleased();
-        cFlightControls.flight_mouseReleased();
-        cStockRecords.stocks_mouseReleased();
-        cToolArray.tools_mouseReleased();
+        if(cOutroScreen.isActive){
+            cOutroScreen.outroScreen_mouseReleased();}
+        else if(cIntroScreen.isActive){
+            cIntroScreen.introScreen_mouseReleased();}
+        else{
+            cSensorArray.sensor_mouseReleased();
+            cFlightControls.flight_mouseReleased();
+            cStockRecords.stocks_mouseReleased();
+            cToolArray.tools_mouseReleased();
+        }
     }
 
     void checkButtonsClicked(){
