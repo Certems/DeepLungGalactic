@@ -41,8 +41,9 @@ float findAngle(PVector point, PVector origin){
     return theta;
 }
 
-float roundTo1dp(float value){
-    return floor(10.0*value)/10.0;
+float roundToXdp(float value, int decimalPoints){
+
+    return floor((pow(10,decimalPoints))*value)/(pow(10,decimalPoints));
 }
 
 //*These ones are needed
@@ -105,23 +106,27 @@ float getSmallestElem(ArrayList<ArrayList<Float>> matrix){
 
 
 float calcFalloff(String falloffType, PVector centralPos, PVector targetPos){
+    /*
+    **+1 is to make it so the CENTRE is the maximum, and it is reduced from there
+    */
+    float scale = 1.0;
     float valuePercent = 0.0;
     if(falloffType == "r^-3"){
         float r = vec_mag(vec_dir(centralPos, targetPos));
         if(r != 0.0){
-            valuePercent = pow(r, -3);
+            valuePercent = pow(1.0 +r*scale, -3);
         }
     }
     if(falloffType == "r^-2"){
         float r = vec_mag(vec_dir(centralPos, targetPos));
         if(r != 0.0){
-            valuePercent = pow(r, -2);
+            valuePercent = pow(1.0 +r*scale, -2);
         }
     }
     if(falloffType == "r^-1"){
         float r = vec_mag(vec_dir(centralPos, targetPos));
         if(r != 0.0){
-            valuePercent = pow(r, -1);
+            valuePercent = pow(1.0 +r*scale, -1);
         }
     }
     return valuePercent;

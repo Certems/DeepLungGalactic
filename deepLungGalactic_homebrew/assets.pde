@@ -1,5 +1,9 @@
 PImage opening_graphic = loadImage("");
 
+PImage texture_manual_screen;
+PImage texture_credits_screen;
+PImage texture_outro_screen;
+PImage texture_general_companySymbol;
 PImage texture_general_button_back;
 PImage texture_general_button_scroller;
 PImage texture_flight_selection_probe_selectionBox;
@@ -23,6 +27,9 @@ PImage texture_stocks_selection_stockDetail_commit;
 PImage texture_tools_selection_cartographer;
 PImage texture_tools_selection_radio;
 PImage texture_tools_selection_settings;
+PImage texture_tools_selection_settings_icon;
+PImage texture_tools_selection_settings_manualIcon;
+PImage texture_tools_selection_settings_creditsIcon;
 PImage texture_tools_cartography_toggleWheel;
 PImage texture_tools_cartography_resetZoom;
 
@@ -51,6 +58,7 @@ Then allow them to click to enter the main game,
 */
 
 void load_textures(){
+    load_textures_screens();
     load_textures_general();
     load_textures_sensor();
     load_textures_flight();
@@ -58,11 +66,22 @@ void load_textures(){
     load_textures_tools();
 }
 
+void load_textures_screens(){
+    texture_credits_screen  = loadImage("credits_screen.png");
+    texture_manual_screen   = loadImage("manual_screen.png");
+    texture_outro_screen    = loadImage("outroScreen_background.png");
+    texture_credits_screen.resize(width, height);
+    texture_manual_screen.resize(width, height);
+    texture_outro_screen.resize(width, height);
+}
+
 void load_textures_general(){
+    texture_general_companySymbol   = loadImage("companySymbol.png");
     texture_general_button_back     = loadImage("button_back.png");
     texture_general_button_scroller = loadImage("button_scroller.png");
+    texture_general_companySymbol.resize(floor(height/3.0), floor(height/3.0));
     texture_general_button_back.resize(floor(cManager.cFlightControls.backButton_dim.x), floor(cManager.cFlightControls.backButton_dim.y));
-    texture_general_button_scroller.resize(floor(cManager.cFlightControls.scroller_dim.x), floor(cManager.cFlightControls.scroller_dim.y));
+    texture_general_button_scroller.resize(floor(cManager.cFlightControls.scrollerProbe_dim.x), floor(cManager.cFlightControls.scrollerProbe_dim.y));
 }
 
 void load_textures_sensor(){
@@ -111,14 +130,20 @@ void load_textures_stocks(){
 }
 
 void load_textures_tools(){
-    texture_tools_selection_cartographer = loadImage("cartography.png");
-    texture_tools_selection_radio        = loadImage("radio.png");
-    texture_tools_selection_settings     = loadImage("settings.png");
-    texture_tools_cartography_toggleWheel= loadImage("toggleCartoWheel.png");
-    texture_tools_cartography_resetZoom  = loadImage("resetZoom.png");
+    texture_tools_selection_cartographer         = loadImage("cartography.png");
+    texture_tools_selection_radio                = loadImage("radio.png");
+    texture_tools_selection_settings             = loadImage("settings.png");
+    texture_tools_selection_settings_icon        = loadImage("exitGame_icon.png");
+    texture_tools_selection_settings_manualIcon  = loadImage("manual_icon.png");
+    texture_tools_selection_settings_creditsIcon = loadImage("credits_icon.png");
+    texture_tools_cartography_toggleWheel        = loadImage("toggleCartoWheel.png");
+    texture_tools_cartography_resetZoom          = loadImage("resetZoom.png");
     texture_tools_selection_cartographer.resize(floor(cManager.cToolArray.cartographer_dim.x), floor(cManager.cToolArray.cartographer_dim.y));
     texture_tools_selection_radio.resize(floor(cManager.cToolArray.radio_dim.x), floor(cManager.cToolArray.radio_dim.y));
     texture_tools_selection_settings.resize(floor(cManager.cToolArray.settings_dim.x), floor(cManager.cToolArray.settings_dim.y));
+    texture_tools_selection_settings_icon.resize(floor(cManager.cToolArray.quit_dim.x), floor(cManager.cToolArray.quit_dim.y));
+    texture_tools_selection_settings_manualIcon.resize(floor(cManager.cToolArray.manualIcon_dim.x), floor(cManager.cToolArray.manualIcon_dim.y));
+    texture_tools_selection_settings_creditsIcon.resize(floor(cManager.cToolArray.creditsIcon_dim.x), floor(cManager.cToolArray.creditsIcon_dim.y));
     texture_tools_cartography_toggleWheel.resize(floor(cManager.cToolArray.wheelLoad_dim.x), floor(cManager.cToolArray.wheelLoad_dim.y));
     texture_tools_cartography_resetZoom.resize(floor(cManager.cToolArray.zoomOutButton_dim.x), floor(cManager.cToolArray.zoomOutButton_dim.y));
 }
@@ -176,5 +201,6 @@ void load_sounds_aliens(){
 
 void load_sounds_radio(){
     //## MEMORY HEAVY ATM => TEMP. REMOVING AUDIO FROM PROJECT
-    sound_radio_radio1 = new SoundFile(this, "aliens_1.wav");//new SoundFile(this, "Radio Chatter - W1ZY April 29th, 2019.m4a");
+    sound_radio_radio1 = new SoundFile(this, "radioChatter.wav");//new SoundFile(this, "Radio Chatter - W1ZY April 29th, 2019.m4a"); ---> WRONG, USING OWN RADIO CHATTER CURRENTLY
+    //## MP3 BEING AWKWARD ATM
 }

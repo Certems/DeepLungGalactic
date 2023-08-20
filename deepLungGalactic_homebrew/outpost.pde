@@ -22,8 +22,11 @@ class outpost{
     boolean locked         = false; //Locking stops drilling, but makes you immune to aliens (resistance wont go down)
     boolean drillAngChosen = false;
     boolean isDrilling     = false;
+    boolean isTransporting = false;
     int drillCounter  = 0;
     int drillInterval = 5;  //How many frames before a drillStep occurs
+    int transportCounter  = 0;
+    int transportInterval = 60;
     
     PVector pos;            //Will stay constant, even though the planet it is on is rotating -> this is a relative pos
     PVector drillPoint;     //FINAL point for the drill, where it is travelling to (starting FROM pos)
@@ -110,6 +113,7 @@ class outpost{
     void calcDestruction(solarMap cSolarMap){
         if(resistance <= 0.0){
             cSolarMap.destroyOutpost(this);
+            cManager.cFlightControls.generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
         }
     }
     void updateNestsDrilled(){
@@ -253,7 +257,7 @@ class outpost{
         if(drillTargets.size() > 0){
             //1
             mineral givenMineral = linkedBody.mineralSet.get( int(drillTargets.get(0).y) ).get( int(drillTargets.get(0).x) );       //WANT parse by reference
-            float drillQuantity  = min(drillPower*givenMineral.digDifficulty*stdDigQuantity, givenMineral.quantity);    //Cannot over dig, Any excess dig is ignored
+            float drillQuantity  = min(drillPower*(1.0*givenMineral.digDifficulty)*stdDigQuantity, givenMineral.quantity);    //Cannot over dig, Any excess dig is ignored
             givenMineral.quantity -= drillQuantity;
             //... Do this at some other point, not particularly necessary ...
             //4
@@ -275,12 +279,26 @@ class outpost{
         return angleOffsetRange*convertedPercent;
     }
     void transportMineralsToShip(stockRecords cStockRecords){
-        println("Transporting minerals from outpost to ship...");
-        for(int i=0; i<cCargo.storedMinerals.size(); i++){
-            item givenItem = mineralToItem(cCargo.storedMinerals.get(i));
-            cStockRecords.addItem(givenItem, cStockRecords.ship_inventory);
+        transportCounter++;
+        if(transportCounter >= transportInterval){
+            transportStep(cStockRecords);
+            transportCounter = 0;
         }
-        cCargo.storedMinerals.clear();
+    }
+    void transportStep(stockRecords cStockRecords){
+        float transportRate = 100.0;
+        if(locked){
+            transportRate *= 0.5;}
+        if(cCargo.storedMinerals.size() > 0){
+            println("step transporting...");
+            item givenItem = mineralToItem(cCargo.storedMinerals.get(0));
+            float movedQuantity = min(transportRate, cCargo.storedMinerals.get(0).quantity);
+            givenItem.quantity = movedQuantity;
+            cStockRecords.addItem(givenItem, cStockRecords.ship_inventory);
+            mineral mineralRemoval = generateCopy_mineral(cCargo.storedMinerals.get(0));
+            mineralRemoval.quantity = -movedQuantity;
+            cCargo.storeMineral(mineralRemoval);
+        }
     }
 
     void lockOutpost(){
@@ -358,11 +376,13 @@ class cargoTank{
             if(cMineral.name == storedMinerals.get(i).name){
                 //Duplicate => sum quantities
                 storedMinerals.get(i).quantity += cMineral.quantity;
+                if(storedMinerals.get(i).quantity <= 0){
+                    storedMinerals.remove(i);}
                 duplicateFound = true;
                 break;
             }
         }
-        if(!duplicateFound){
+        if(!duplicateFound && (cMineral.quantity > 0)){
             storedMinerals.add(cMineral);
         }
     }

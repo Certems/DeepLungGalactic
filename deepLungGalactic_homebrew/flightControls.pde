@@ -22,7 +22,7 @@ class flightControls{
     boolean screen_probeLaunch   = false;
     boolean screen_outpostMining = false;
 
-    ArrayList<button> buttonSet = new ArrayList<button>();
+    ArrayList<button> buttonSet        = new ArrayList<button>();
     ArrayList<dispCell> probeCellSet   = new ArrayList<dispCell>();
     ArrayList<dispCell> outpostCellSet = new ArrayList<dispCell>();
 
@@ -34,8 +34,10 @@ class flightControls{
     PVector launchButton_dim;
     PVector backButton_pos;
     PVector backButton_dim;
-    PVector scroller_dim;
-    PVector scroller_pos;
+    PVector scrollerProbe_dim;
+    PVector scrollerProbe_pos;
+    PVector scrollerOutpost_dim;
+    PVector scrollerOutpost_pos;
     //Controls
     PVector fuel_dim;
     PVector fuel_pos;
@@ -75,6 +77,8 @@ class flightControls{
     PVector lock_pos;           //
     PVector lockIndicator_dim;      //
     PVector lockIndicator_pos;      //
+    PVector miningPos_dim;      //
+    PVector miningPos_pos;      //
 
     int probeSetIndOffset   = 0;      //Offsets the index that the probeSet is first drawn at, so it can be scrolled through
     int outpostSetIndOffset = 0;      //
@@ -88,8 +92,10 @@ class flightControls{
         launchButton_dim = new PVector(2.0*panelDim.y/5.0, 2.0*panelDim.y/5.0);
         backButton_dim   = new PVector(0.15*panelDim.x,0.15*panelDim.x);
         backButton_pos   = new PVector(cornerPos.x +0.80*panelDim.x, cornerPos.y +panelDim.y -0.2*panelDim.x);
-        scroller_dim     = new PVector(panelDim.y/7.0, panelDim.y/7.0);
-        scroller_pos     = new PVector(cornerPos.x +0.88*panelDim.x, cornerPos.y +0.05*panelDim.y);
+        scrollerProbe_dim     = new PVector(panelDim.y/7.0, panelDim.y/7.0);
+        scrollerProbe_pos     = new PVector(cornerPos.x +0.78*panelDim.x, cornerPos.y +0.05*panelDim.y);
+        scrollerOutpost_dim   = new PVector(panelDim.y/7.0, panelDim.y/7.0);
+        scrollerOutpost_pos   = new PVector(cornerPos.x +0.88*panelDim.x, cornerPos.y +0.05*panelDim.y);
         fuel_dim         = new PVector(panelDim.x*0.07, panelDim.y*0.9);
         fuel_pos         = new PVector(cornerPos.x +panelDim.x*0.001, (cornerPos.y +panelDim.y -fuel_dim.y)/2.0);
         thrustCtrl_dim   = new PVector(0.2*panelDim.x, 0.325*panelDim.y);
@@ -124,6 +130,10 @@ class flightControls{
         lock_pos            = new PVector(cornerPos.x +0.4*panelDim.x,cornerPos.y +0.25*panelDim.y);
         lockIndicator_dim   = new PVector(0.1*panelDim.x, 0.1*panelDim.x);
         lockIndicator_pos   = new PVector(cornerPos.x +0.8*panelDim.x, cornerPos.y +0.15*panelDim.y);
+        miningPos_dim       = new PVector(panelDim.x/6.0, panelDim.y/10.0);
+        miningPos_pos       = new PVector(miningSlider_pos.x +1.1*miningSlider_dim.x, miningSlider_pos.y);
+
+        loadButtons_screen_selection();
     }
 
     void display(solarMap cSolarMap){
@@ -146,7 +156,18 @@ class flightControls{
         checkOutpostInteractables_clicks(cManager.cSolarMap.outposts);
     }
     void flight_mouseReleased(){
-        //pass
+        if(screen_probeControls){
+            stopProbeThrust();}
+        //...
+    }
+
+    void stopProbeThrust(){
+        /*
+        Whenever you are in the probe control panel, and you release you finger from the screen, 
+        the probe will stop thrusting --> will either be the intended effect or pointless (but not harmful)
+        */
+        buttonSet.get(0).relatedProbe.thrustingFwd = false;
+        buttonSet.get(0).relatedProbe.thrustingBck = false;
     }
 
     void checkOutpostInteractables_clicks(ArrayList<outpost> outposts){
@@ -167,6 +188,7 @@ class flightControls{
         display_probeSet();
         display_outpostSet();
         display_probeScroller();
+        display_outpostScroller();
         display_launchButton();
     }
     void display_launchButton(){
@@ -215,19 +237,37 @@ class flightControls{
     void display_probeScroller(){
         pushStyle();
         imageMode(CENTER);
-        image(texture_general_button_scroller, scroller_pos.x +scroller_dim.x/2.0, scroller_pos.y +scroller_dim.y/2.0);
+        image(texture_general_button_scroller, scrollerProbe_pos.x +scrollerProbe_dim.x/2.0, scrollerProbe_pos.y +scrollerProbe_dim.y/2.0);
         popStyle();
     }
     void display_probeScroller_simple(){
         pushStyle();
         fill(50,50,50);
         noStroke();
-        ellipse(scroller_pos.x +scroller_dim.x/2.0, scroller_pos.y +scroller_dim.y/2.0, scroller_dim.x, scroller_dim.y);
+        ellipse(scrollerProbe_pos.x +scrollerProbe_dim.x/2.0, scrollerProbe_pos.y +scrollerProbe_dim.y/2.0, scrollerProbe_dim.x, scrollerProbe_dim.y);
 
         textAlign(CENTER, CENTER);
         fill(255,255,255);
         textSize(20);
-        text("Scroller", scroller_pos.x +scroller_dim.x/2.0, scroller_pos.y +scroller_dim.y/2.0);
+        text("ScrollerProbe", scrollerProbe_pos.x +scrollerProbe_dim.x/2.0, scrollerProbe_pos.y +scrollerProbe_dim.y/2.0);
+        popStyle();
+    }
+    void display_outpostScroller(){
+        pushStyle();
+        imageMode(CENTER);
+        image(texture_general_button_scroller, scrollerOutpost_pos.x +scrollerOutpost_dim.x/2.0, scrollerOutpost_pos.y +scrollerOutpost_dim.y/2.0);
+        popStyle();
+    }
+    void display_outpostScroller_simple(){
+        pushStyle();
+        fill(50,50,50);
+        noStroke();
+        ellipse(scrollerOutpost_pos.x +scrollerOutpost_dim.x/2.0, scrollerOutpost_pos.y +scrollerOutpost_dim.y/2.0, scrollerOutpost_dim.x, scrollerOutpost_dim.y);
+
+        textAlign(CENTER, CENTER);
+        fill(255,255,255);
+        textSize(20);
+        text("ScrollerOutpost", scrollerOutpost_pos.x +scrollerOutpost_dim.x/2.0, scrollerOutpost_pos.y +scrollerOutpost_dim.y/2.0);
         popStyle();
     }
     void display_probeControls(probe givenProbe){
@@ -321,9 +361,9 @@ class flightControls{
         fill(200,200,250);
         text("Acc;",dynaVec_pos.x, dynaVec_pos.y +dynaVec_dim.y/2.0 +2.0*(dynaVec_dim.y +border));
         //Coords
-        String posFormatted = "("+str(roundTo1dp(givenProbe.pos.x))+" , "+str(roundTo1dp(givenProbe.pos.y))+")";
-        String velFormatted = "("+str(roundTo1dp(givenProbe.vel.x))+" , "+str(roundTo1dp(givenProbe.vel.y))+")";
-        String accFormatted = "("+str(roundTo1dp(givenProbe.acc.x))+" , "+str(roundTo1dp(givenProbe.acc.y))+")";
+        String posFormatted = "("+str(roundToXdp(givenProbe.pos.x, 1))+" , "+str(roundToXdp(givenProbe.pos.y, 1))+")";
+        String velFormatted = "("+str(roundToXdp(givenProbe.vel.x, 2))+" , "+str(roundToXdp(givenProbe.vel.y, 2))+")";
+        String accFormatted = "("+str(roundToXdp(givenProbe.acc.x, 2))+" , "+str(roundToXdp(givenProbe.acc.y, 2))+")";
         textSize(0.5*dynaVec_dim.y);
         textAlign(CENTER, CENTER);
         fill(250,200,200);
@@ -433,6 +473,7 @@ class flightControls{
         popStyle();
     }
     void display_outpostMining(outpost cOutpost){
+        display_position(cOutpost);
         display_drillToggle();
         display_mineralTanks(cOutpost);
         display_audioQuick();
@@ -444,11 +485,26 @@ class flightControls{
         display_miningSlider(cOutpost);
         display_backButton();
 
+        //## BUG FIXING
         pushStyle();
         fill(255,255,255);
         textSize(30);
         text(cOutpost.resistance, mouseX, mouseY);
         text(str(cOutpost.locked), mouseX, mouseY +30.0);
+        popStyle();
+        //## BUG FIXING
+    }
+    void display_position(outpost cOutpost){
+        pushStyle();
+
+        rectMode(CORNER);
+        fill(80,80,80, 150);
+        rect(miningPos_pos.x, miningPos_pos.y, miningPos_dim.x, miningPos_dim.y);
+
+        textAlign(CENTER, CENTER);
+        textSize(panelDim.x/35.0);
+        fill(230,230,230);
+        text("("+str(roundToXdp(cOutpost.pos.x +cOutpost.linkedBody.pos.x,1))+" ,"+str(roundToXdp(cOutpost.pos.y +cOutpost.linkedBody.pos.y,1))+")", miningPos_pos.x +miningPos_dim.x/2.0, miningPos_pos.y +miningPos_dim.y/2.0);
         popStyle();
     }
     void display_drillToggle(){
@@ -559,7 +615,14 @@ class flightControls{
     }
     void display_miningSlider(outpost cOutpost){
         if(cOutpost.miningSlider.isVisible){
-            cOutpost.miningSlider.display(miningSlider_pos, miningSlider_dim);}
+            cOutpost.miningSlider.display(miningSlider_pos, miningSlider_dim);
+            pushStyle();
+            fill(20,20,20);
+            textAlign(CENTER, CENTER);
+            textSize(miningSlider_dim.y/2.0);
+            text(str( floor(degrees(cOutpost.angleOffsetRange))) +"°", miningSlider_pos.x +miningSlider_dim.x -0.1*miningSlider_dim.x, miningSlider_pos.y +0.5*miningSlider_dim.y);
+            text(str(-floor(degrees(cOutpost.angleOffsetRange))) +"°", miningSlider_pos.x                     +0.1*miningSlider_dim.x, miningSlider_pos.y +0.5*miningSlider_dim.y);
+            popStyle();}
     }
     //##BUG FIXING##
     void display_buttonBounds(){
@@ -698,9 +761,10 @@ class flightControls{
                 }
             }
         }
-        button newButton0 = new button( scroller_pos, scroller_dim, "circ", "flight_incrementProbeIndOffset");
-        button newButton1 = new button(launchButton_pos, launchButton_dim, "circ", "flight_goToLaunch");
-        buttonSet.add(newButton0);buttonSet.add(newButton1);
+        button newButton0 = new button( scrollerProbe_pos  , scrollerProbe_dim  , "circ", "flight_incrementProbeIndOffset");
+        button newButton1 = new button( scrollerOutpost_pos, scrollerOutpost_dim, "circ", "flight_incrementOutpostIndOffset");
+        button newButton2 = new button(launchButton_pos, launchButton_dim, "circ", "flight_goToLaunch");
+        buttonSet.add(newButton0);buttonSet.add(newButton1);buttonSet.add(newButton2);
     }
     void loadButtons_screen_probeControls(probe givenProbe){
         /*

@@ -71,6 +71,8 @@ class stockRecords{
         initShipInventory();
         initStockExchange();
         initStockRecords(30);
+
+        loadButtons_screen_selection();
     }
 
     //Display
@@ -114,12 +116,14 @@ class stockRecords{
                 textAlign(LEFT,CENTER);
                 textSize(inv_sizeOfText);
                 String infoText_name  = ship_inventory.get(givenInvInd).name;
-                String infoText_value = str(ship_inventory.get(givenInvInd).quantity);
+                String infoText_value = str(floor(ship_inventory.get(givenInvInd).quantity));
                 boolean onLastLine = (i == int(inv_cellNumber)-1);
                 boolean moreInvRemaining = (ship_inventory.size()-1 > givenInvInd);
                 if(onLastLine && moreInvRemaining){
                     infoText_name = "...";}
+                textAlign(LEFT);
                 text(infoText_name,  cornerPos.x +inv_leftBorder                 ,cornerPos.y +inv_border*(i+1) +inv_dim.y*(i) +inv_sizeOfText);
+                textAlign(CENTER);
                 text(infoText_value, cornerPos.x +inv_leftBorder +inv_dim.x/2.0 , cornerPos.y +inv_border*(i+1) +inv_dim.y*(i) +inv_sizeOfText);}
             else{
                 break;}
@@ -295,7 +299,7 @@ class stockRecords{
         textAlign(CENTER, CENTER);
         textSize(moneyDisp_dim.x);
         fill(255,255,255);
-        text("$"+str(roundTo1dp(moneyOwned)), moneyDisp_pos.x, moneyDisp_pos.y);
+        text("$"+str(roundToXdp(moneyOwned, 1)), moneyDisp_pos.x, moneyDisp_pos.y);
         popStyle();
     }
     //--- Display Graphs
@@ -358,7 +362,7 @@ class stockRecords{
         textSize(15);
         textAlign(RIGHT);
         for(int i=0; i<=labelledNumber; i++){
-            text(str(roundTo1dp(maxVal -pixelsToUnitsConversion*i*yInterval)), cornerPos.x +(panelDim.x -graphDim.x)/2.0, cornerPos.y +(panelDim.y -graphDim.y)/2.0 +i*yInterval);
+            text(str(roundToXdp(maxVal -pixelsToUnitsConversion*i*yInterval, 1)), cornerPos.x +(panelDim.x -graphDim.x)/2.0, cornerPos.y +(panelDim.y -graphDim.y)/2.0 +i*yInterval);
         }
         PVector timeDispOffset = new PVector(graphDim.x/30.0, graphDim.y/10.0);
         text("t=0",cornerPos.x +(panelDim.x +graphDim.x)/2.0 +timeDispOffset.x, cornerPos.y +(panelDim.y +graphDim.y)/2.0 +timeDispOffset.y);
@@ -405,9 +409,15 @@ class stockRecords{
 
 
     void initShipInventory(){
-        addItem(new item_crestulin(120.0), ship_inventory);
-        addItem(new item_traen04(23.3), ship_inventory);
-        addItem(new item_probeCore(1.0), ship_inventory);
+        addItem(new item_probeCore(6.0), ship_inventory);
+        //addItem(new item_forbicite(23.3), ship_inventory);
+        //addItem(new item_crestulin(120.0), ship_inventory);
+        //addItem(new item_traen04(23.3), ship_inventory);
+        //addItem(new item_tickline(23.3), ship_inventory);
+        //addItem(new item_gaiaite(23.3), ship_inventory);
+        //addItem(new item_chronosilicate(23.3), ship_inventory);
+        //addItem(new item_astridium(23.3), ship_inventory);
+        //addItem(new item_hyperflex(23.3), ship_inventory);
     }
     void initStockExchange(){
         /*
@@ -418,9 +428,9 @@ class stockRecords{
         ArrayList<String> keys = new ArrayList<String>();
         ArrayList<ArrayList<Float>> values = new ArrayList<ArrayList<Float>>();
 
-        keys.add("crestulin");             keys.add("forbicite");             keys.add("traen04");               keys.add("probeCore");
-        values.add(new ArrayList<Float>());values.add(new ArrayList<Float>());values.add(new ArrayList<Float>());values.add(new ArrayList<Float>());
-        values.get(0).add(1.2);            values.get(1).add(0.6);            values.get(2).add(3.3);            values.get(3).add(82.0);
+        keys.add("crestulin");             keys.add("forbicite");             keys.add("traen04");               keys.add("probeCore");             keys.add("tickline");              keys.add("gaiaite");               keys.add("chronosilicate");        keys.add("astridium");             keys.add("hyperflex");
+        values.add(new ArrayList<Float>());values.add(new ArrayList<Float>());values.add(new ArrayList<Float>());values.add(new ArrayList<Float>());values.add(new ArrayList<Float>());values.add(new ArrayList<Float>());values.add(new ArrayList<Float>());values.add(new ArrayList<Float>());values.add(new ArrayList<Float>());
+        values.get(0).add(1.2);            values.get(1).add(0.6);            values.get(2).add(3.3);            values.get(3).add(82.0);           values.get(4).add(1.0);            values.get(5).add(2.3);            values.get(6).add(4.0);            values.get(7).add(5.7);            values.get(8).add(1.3);
 
         stockExchange = new stringArrayDictionary(keys, values);
     }
@@ -442,6 +452,7 @@ class stockRecords{
         */
         //1
         for(int i=0; i<stockExchange.size(); i++){
+            println(i);
             //2
             float randFactor = random(-0.15, 0.15);                                             //Percentage INCREASE or DECREASE, NOT a multiplier
             float newPrice = stockExchange.values.get(i).get(0)*(1.0 +randFactor);
@@ -452,6 +463,19 @@ class stockRecords{
             for(int j=0; j<resolutionDifference; j++){                                          //Will let it naturally come up to speed of the new resolution, BUT instantly cut it short -> Which is a good thing
                 stockExchange.values.get(i).remove( stockExchange.values.get(i).size() -1 );}   //Remove from end
         }
+    }
+    float findItemCount(item givenItem){
+        /*
+        Returns quantity of given item in ship inventory
+        */
+        float quantityCount = -1.0;
+        for(int i=0; i<ship_inventory.size(); i++){
+            if(ship_inventory.get(i).name == givenItem.name){
+                quantityCount = ship_inventory.get(i).quantity;
+                break;
+            }
+        }
+        return quantityCount;
     }
     void addItem(item givenItem, ArrayList<item> itemList){
         /*
@@ -466,14 +490,19 @@ class stockRecords{
                 itemAlreadyExists = true;
                 itemList.get(i).quantity += givenItem.quantity;
                 if(itemList.get(i).quantity <= 0){
-                    //All gone => remove space
-                    itemList.remove(i);
+                    if(itemList.get(i).name != "probeCore"){    //**DO NOT remove probe cores, so they can be brought again
+                        //All gone => remove space
+                        itemList.remove(i);
+                    }
                 }
                 break;
             }
         }
         if( (!itemAlreadyExists) && (givenItem.quantity > 0) ){
             itemList.add( generateCopy_item(givenItem) );
+            itemList.get( itemList.size()-1 ).quantity = givenItem.quantity;
+            if(screen_selection){
+                loadButtons_screen_selection();}
         }
     }
     void stageItem(item givenItem){
@@ -497,6 +526,7 @@ class stockRecords{
         }
         if(!itemAlreadyExists){
             staged_items.add( generateCopy_item(givenItem) );
+            staged_items.get( staged_items.size()-1 ).quantity = givenItem.quantity;    //Because copy is generated with 0 quantity
         }
     }
     void commitStaged(){
@@ -666,6 +696,56 @@ class item_probeCore extends item{
 
     //pass
 }
+class item_tickline extends item{
+    //pass
+
+    item_tickline(float quantity){
+        super(quantity);
+        name = "tickline";
+    }
+
+    //pass
+}
+class item_gaiaite extends item{
+    //pass
+
+    item_gaiaite(float quantity){
+        super(quantity);
+        name = "gaiaite";
+    }
+
+    //pass
+}
+class item_chronosilicate extends item{
+    //pass
+
+    item_chronosilicate(float quantity){
+        super(quantity);
+        name = "chronosilicate";
+    }
+
+    //pass
+}
+class item_astridium extends item{
+    //pass
+
+    item_astridium(float quantity){
+        super(quantity);
+        name = "astridium";
+    }
+
+    //pass
+}
+class item_hyperflex extends item{
+    //pass
+
+    item_hyperflex(float quantity){
+        super(quantity);
+        name = "hyperflex";
+    }
+
+    //pass
+}
 
 
 /*
@@ -687,6 +767,26 @@ item mineralToItem(mineral cMineral){
         item_traen04 newItem = new item_traen04(cMineral.quantity);
         return newItem;
     }
+    else if(cMineral.name == "tickline"){
+        item_tickline newItem = new item_tickline(cMineral.quantity);
+        return newItem;
+    }
+    else if(cMineral.name == "gaiaite"){
+        item_gaiaite newItem = new item_gaiaite(cMineral.quantity);
+        return newItem;
+    }
+    else if(cMineral.name == "chronosilicate"){
+        item_chronosilicate newItem = new item_chronosilicate(cMineral.quantity);
+        return newItem;
+    }
+    else if(cMineral.name == "astridium"){
+        item_astridium newItem = new item_astridium(cMineral.quantity);
+        return newItem;
+    }
+    else if(cMineral.name == "hyperflex"){
+        item_hyperflex newItem = new item_hyperflex(cMineral.quantity);
+        return newItem;
+    }
     else{
         return null;
     }
@@ -705,6 +805,21 @@ item generateCopy_item(item givenItem){
     else if(givenItem.name == "probeCore"){
         return new item_probeCore(quantity);
     }
+    else if(givenItem.name == "tickline"){
+        return new item_tickline(quantity);
+    }
+    else if(givenItem.name == "gaiaite"){
+        return new item_gaiaite(quantity);
+    }
+    else if(givenItem.name == "chronosilicate"){
+        return new item_chronosilicate(quantity);
+    }
+    else if(givenItem.name == "astridium"){
+        return new item_astridium(quantity);
+    }
+    else if(givenItem.name == "hyperflex"){
+        return new item_hyperflex(quantity);
+    }
     else{
         return null;
     }
@@ -718,6 +833,21 @@ mineral generateCopy_mineral(mineral givenMineral){
     }
     else if(givenMineral.name == "traen04"){
         return new traen04();
+    }
+    else if(givenMineral.name == "tickline"){
+        return new tickline();
+    }
+    else if(givenMineral.name == "gaiaite"){
+        return new gaiaite();
+    }
+    else if(givenMineral.name == "chronosilicate"){
+        return new chronosilicate();
+    }
+    else if(givenMineral.name == "astridium"){
+        return new astridium();
+    }
+    else if(givenMineral.name == "hyperflex"){
+        return new hyperflex();
     }
     else{
         return null;

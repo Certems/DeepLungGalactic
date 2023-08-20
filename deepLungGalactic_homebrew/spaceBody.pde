@@ -12,6 +12,7 @@ class spaceBody{
 
     float radius;
     float angMomentum;
+    float coreTempMax = 5000.0;
     float coreTemp;         //Central temperature of body's core
     String tempFalloffType; //How the temperature of the core is reflected as a function of distance
 
@@ -20,20 +21,22 @@ class spaceBody{
     int sizeOfMineralDepo = 20;     //How many cells in width and height of the bounding box for the body
     float mineralCellWidth;         //Size in terms of AU of each cell
     float mass;
+    float planetStrengthOffset;
 
-    spaceBody(PVector pos, PVector vel, PVector acc, float radius, float angMomentum){
+    spaceBody(PVector pos, PVector vel, PVector acc, float radius, float radiusMax, float angMomentum){
         this.pos = pos;
         this.vel = vel;
         this.acc = acc;
         this.radius = radius;
         this.angMomentum = angMomentum;
-        coreTemp = 3000;
+        planetStrengthOffset = random(0.0, 1.5);
+        coreTemp = coreTempMax*(radius/radiusMax);
         tempFalloffType = "r^-2";
         mineralCellWidth = (2.0*radius) / (sizeOfMineralDepo);
         mass = 1.0*pow(radius, 3);
         
         generateAlienNests( floor(random(0.0, 5.0)) );
-        generateMinerals(3);
+        generateMinerals(floor(random(5,8)));
     }
 
     PVector calcGravity(PVector point){
@@ -52,6 +55,17 @@ class spaceBody{
         PVector force = new PVector(mag*uDir.x, mag*uDir.y);
         return force;
     }
+    float calcRemainingWealth(stockRecords cStockRecords){
+        float totalValue = 0.0;
+        for(int j=0; j<mineralSet.size(); j++){
+            for(int i=0; i<mineralSet.get(j).size(); i++){
+                if(mineralSet.get(j).get(i) != null){
+                    totalValue += mineralSet.get(j).get(i).quantity*cStockRecords.stockExchange.getValue( mineralSet.get(j).get(i).name ).get(0);
+                }
+            }
+        }
+        return totalValue;
+    }
     void generateAlienNests(int nestNumber){
         alienNests.clear();
         float nestSizeMax = 0.15;
@@ -59,7 +73,7 @@ class spaceBody{
             float theta     = random(0.0, 2.0*PI);
             float spawnDist = random(0.1*radius, 0.9*radius);
             float nestSize  = random(0.1*nestSizeMax, nestSizeMax);
-            alienNest newNest = new alienNest( new PVector(spawnDist*cos(theta), spawnDist*sin(theta)), nestSize);
+            alienNest newNest = new alienNest( new PVector(spawnDist*cos(theta), spawnDist*sin(theta)), nestSize, nestSizeMax);
             alienNests.add(newNest);
         }
     }
@@ -95,20 +109,20 @@ class spaceBody{
         float intervalJump = mineralCellWidth;
         for(int p=0; p<nodeNumber; p++){
             //2
-            float range     = random(0.2*radius, 0.6*radius);
-            float strength  = random(0.0, 1.0);
-            float quantity  = random(0.0, 100.0);
+            float range     = random(0.2*radius, 0.8*radius);
+            float strength  = random(0.0, 2.0) +planetStrengthOffset;
+            float quantity  = random(60.0, 100.0);
             PVector nodeCentre = new PVector(random(0, 2.0*radius), random(0, 2.0*radius));
             //3
             for(int j=0; j<mineralSet_gen_t.size(); j++){
                 for(int i=0; i<mineralSet_gen_t.get(j).size(); i++){
                     PVector rawCoord = new PVector(i*intervalJump, j*intervalJump);     //From binned coord, takes centre of the box value -> relative to centre of the body-
-                    float newValue_t = strength*calcFalloff("r^-1", nodeCentre, rawCoord);   //Use raw coord
+                    float newValue_t = strength*calcFalloff("r^-2", nodeCentre, rawCoord);   //Use raw coord
                     float oldValue_t = mineralSet_gen_t.get(j).get(i);
                     mineralSet_gen_t.get(j).remove(i);
                     mineralSet_gen_t.get(j).add(i, newValue_t +oldValue_t);
 
-                    float newValue_q = quantity*calcFalloff("r^-1", nodeCentre, rawCoord);   //Use raw coord
+                    float newValue_q = quantity*calcFalloff("r^-2", nodeCentre, rawCoord);   //Use raw coord
                     float oldValue_q = mineralSet_gen_q.get(j).get(i);
                     mineralSet_gen_q.get(j).remove(i);
                     mineralSet_gen_q.get(j).add(i, newValue_q +oldValue_q);
@@ -141,14 +155,29 @@ class spaceBody{
         ### CONVERT TO DICTIONARY USAGE --> WILL REQUIRE GENERATION VALUES TO BE ADJUSTED ###
         #####################################################################################
         */
-        if(      (0.0 < value) && (value <= 0.7) ){
+        if(value < 0.5){
             forbicite newMineral = new forbicite();
             return newMineral;}
-        else if( (0.7 < value) && (value <= 2.0) ){
+        else if(value < 0.9){
             crestulin newMineral = new crestulin();
             return newMineral;}
-        else{
+        else if(value < 1.5){
             traen04 newMineral = new traen04();
+            return newMineral;}
+        else if(value < 2.1){
+            tickline newMineral = new tickline();
+            return newMineral;}
+        else if(value < 3.5){
+            gaiaite newMineral = new gaiaite();
+            return newMineral;}
+        else if(value < 4.0){
+            chronosilicate newMineral = new chronosilicate();
+            return newMineral;}
+        else if(value < 5.3){
+            astridium newMineral = new astridium();
+            return newMineral;}
+        else{
+            hyperflex newMineral = new hyperflex();
             return newMineral;}
     }
     boolean isCollidingWithBody(PVector point, float relief){
@@ -208,12 +237,15 @@ class alienNest{
     float size;
     float chase = 0.0;
 
-    float temp = 500.0;
+    float tempMax = 2000.0;
+    float temp = 0.0;
     float drillFactor = 3.0;    //Once drilled, the chase of this nest will be multipled by this factor (can only be applied ONCE)
 
-    alienNest(PVector pos, float size){
+    alienNest(PVector pos, float size, float sizeMax){
         this.pos = pos;
         this.size = size;
+
+        temp = tempMax*(size/sizeMax);
         calcInitChase();
     }
 

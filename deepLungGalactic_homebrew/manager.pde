@@ -41,9 +41,9 @@ class manager{
         cStockRecords.display();
         cToolArray.display();
 
-        //cSolarMap.display( new PVector(width/2.0, height/2.0) );    //### For Bug-Fixing ###
-        //if(cSolarMap.outposts.size() > 0){                          //
-        //    cSolarMap.outposts.get(0).displayTargets();}            //
+        //cSolarMap.display( new PVector(width/2.0, height/2.0), 1.0 );     //### For Bug-Fixing ###
+        //if(cSolarMap.outposts.size() > 0){                                //
+        //    cSolarMap.outposts.get(0).displayTargets();}                  //
     }
     void calc_panels(){
         cSolarMap.calc();

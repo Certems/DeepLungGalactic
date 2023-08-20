@@ -14,7 +14,7 @@ class introScreen{
     -ve Integer [2 digits] => tranistion from 1st to 2nd digit
     ==> Limited to have a max of 9 screens
     */
-    boolean isActive = false;
+    boolean isActive = true;
 
     int dispType = 1;
 
@@ -51,25 +51,21 @@ class introScreen{
     }
     void display_companyCallout(){
         pushStyle();
-
-        fill(200,200,200);
-        ellipse(width/2.0, height/2.0, height/3.0, height/3.0);
-
+        imageMode(CENTER);
+        image(texture_general_companySymbol, width/2.0, height/2.0);
         popStyle();
     }
 
     void display_screen_2(){
         display_instructions();
-        display_loadingStatus();
-        display_continueBox();
+        //display_loadingStatus();
+        //display_continueBox();
         //...
     }
     void display_instructions(){
         pushStyle();
-
-        fill(150,150,200);
-        ellipse(width/2.0, height/2.0, height/5.0, height/5.0);
-
+        imageMode(CORNER);
+        image(texture_manual_screen, 0, 0);
         popStyle();
     }
     void display_loadingStatus(){

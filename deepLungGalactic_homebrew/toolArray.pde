@@ -46,6 +46,12 @@ class toolArray{
     PVector back_pos;
     PVector timer_dim;
     PVector timer_pos;
+    PVector quit_dim;
+    PVector quit_pos;
+    PVector creditsIcon_dim;
+    PVector creditsIcon_pos;
+    PVector manualIcon_dim;
+    PVector manualIcon_pos;
 
     cartography_main_wheel wheel_main;
     cartographyMap cartoMap;
@@ -68,9 +74,17 @@ class toolArray{
         back_pos  = new PVector(cornerPos.x +0.8*panelDim.x, cornerPos.y +panelDim.y -0.2*panelDim.x);
         timer_dim = new PVector(panelDim.x/3.0, panelDim.y/8.0);
         timer_pos = new PVector(cornerPos.x +panelDim.x/2.0, cornerPos.y +0.9*panelDim.y -timer_dim.y/2.0);
+        quit_dim  = new PVector(panelDim.x/3.0, panelDim.y/5.0);
+        quit_pos  = new PVector(cornerPos.x +panelDim.x/2.0 -quit_dim.x/2.0, cornerPos.y +0.4*panelDim.y -quit_dim.y/2.0);
+        creditsIcon_dim = new PVector(panelDim.y/5.0, panelDim.y/5.0);
+        creditsIcon_pos = new PVector(cornerPos.x +0.08*panelDim.x, cornerPos.y +panelDim.y -1.1*creditsIcon_dim.y);
+        manualIcon_dim  = new PVector(panelDim.y/5.0, panelDim.y/5.0);
+        manualIcon_pos  = new PVector(creditsIcon_pos.x +1.6*creditsIcon_dim.x, cornerPos.y +panelDim.y -1.1*manualIcon_dim.y);
 
         init_mainWheel();
         init_cartographyMap();
+
+        loadButtons_screen_selection();
     }
 
     void display(){
@@ -165,7 +179,7 @@ class toolArray{
         textAlign(CENTER, CENTER);
         textSize(0.8*timer_dim.y);
         fill(255,255,255);
-        PVector timeInMins = convertFromSecondsToMinutes(roundTo1dp(cManager.cOutroScreen.timer/60.0));
+        PVector timeInMins = convertFromSecondsToMinutes(roundToXdp(cManager.cOutroScreen.timer/60.0, 1));
         text(str(timeInMins.x) +" : "+str(timeInMins.y), timer_pos.x, timer_pos.y);       //### CONVERT TO MINUTE CLOCK ###
 
         popStyle();
@@ -181,6 +195,8 @@ class toolArray{
     //Settings
     void display_settings(){
         display_exitGameIcon();
+        display_creditsIcon();
+        display_manualIcon();
         display_backIcon();
         //....
     }
@@ -199,9 +215,48 @@ class toolArray{
     }
     void display_exitGameIcon(){
         pushStyle();
-        textSize(40);
+        imageMode(CORNER);
+        image(texture_tools_selection_settings_icon, quit_pos.x, quit_pos.y);
+        popStyle();
+    }
+    void display_exitGameIcon_simple(){
+        pushStyle();
+        rectMode(CORNER);
+        fill(80,80,80,100);
+        noStroke();
+        rect(quit_pos.x, quit_pos.y, quit_dim.x, quit_dim.y);
+        fill(230,230,230);
+        textSize(quit_dim.x/10.0);
         textAlign(CENTER, CENTER);
-        text("Exit Game", cornerPos.x +panelDim.x/2.0, cornerPos.y +panelDim.y/2.0);
+        text("Exit Game", quit_pos.x +quit_dim.x/2.0, quit_pos.y +quit_dim.y/2.0);
+        popStyle();
+    }
+    void display_creditsIcon(){
+        pushStyle();
+        imageMode(CORNER);
+        image(texture_tools_selection_settings_creditsIcon, creditsIcon_pos.x, creditsIcon_pos.y);
+        popStyle();
+    }
+    void display_creditsIcon_simple(){
+        pushStyle();
+        rectMode(CORNER);
+        fill(80,80,80,100);
+        noStroke();
+        rect(creditsIcon_pos.x, creditsIcon_pos.y, creditsIcon_dim.x, creditsIcon_dim.y);
+        popStyle();
+    }
+    void display_manualIcon(){
+        pushStyle();
+        imageMode(CORNER);
+        image(texture_tools_selection_settings_manualIcon, manualIcon_pos.x, manualIcon_pos.y);
+        popStyle();
+    }
+    void display_manualIcon_simple(){
+        pushStyle();
+        rectMode(CORNER);
+        fill(80,80,80,100);
+        noStroke();
+        rect(manualIcon_pos.x, manualIcon_pos.y, manualIcon_dim.x, manualIcon_dim.y);
         popStyle();
     }
     //Cartographer
@@ -298,8 +353,11 @@ class toolArray{
     }
     void loadButtons_screen_settings(){
         buttonSet.clear();
-        button newButton0 = new button(back_pos, back_dim, "rect", "tools_goToSelection");
-        buttonSet.add(newButton0);
+        button newButton0 = new button(quit_pos       , quit_dim       , "rect", "tools_quitGame");
+        button newButton1 = new button(creditsIcon_pos, creditsIcon_dim, "rect", "tools_goToCredits");
+        button newButton2 = new button(manualIcon_pos , manualIcon_dim , "rect", "tools_goToManual");
+        button newButton3 = new button(back_pos, back_dim, "rect", "tools_goToSelection");
+        buttonSet.add(newButton0);buttonSet.add(newButton1);buttonSet.add(newButton2);buttonSet.add(newButton3);
     }
     void loadButtons_screen_cartographer(){
         buttonSet.clear();
@@ -385,6 +443,30 @@ class cartographyMap{
         resetZoom();
     }
 
+    void displayMini(PVector origin, float scale){
+        pushStyle();
+        
+        //Map bounds
+        noFill();
+        stroke(255,255,255);
+        strokeWeight(3);
+        ellipse(origin.x, origin.y, 2.0*cManager.cSolarMap.mapRadius*scale, 2.0*cManager.cSolarMap.mapRadius*scale);
+
+        //Center
+        fill(50,250,50);
+        noStroke();
+        ellipse(origin.x, origin.y, 5.0, 5.0);
+
+        //Icons
+        noFill();
+        stroke(200,100,100);
+        strokeWeight(2);
+        for(int i=0; i<icons.size(); i++){
+            ellipse(origin.x +icons.get(i).pos.x*scale, origin.y +icons.get(i).pos.y*scale, 5.0, 5.0);
+        }
+
+        popStyle();
+    }
     void display(){
         /*
         Displays visible region in the given dimensions, with its origin top-left corner 
@@ -452,7 +534,7 @@ class cartographyMap{
         while(counter < counterMax){                //For X
 
             line(cToolArray.cornerPos.x +interval_loc_X, cToolArray.cornerPos.y +fixed_Y +intervalThickness, cToolArray.cornerPos.x +interval_loc_X, cToolArray.cornerPos.y +fixed_Y -intervalThickness);
-            text(str( roundTo1dp( minorInterval*(counter) +visiblePos.x -((visiblePos.x) % (minorInterval)) ) ), cToolArray.cornerPos.x +interval_loc_X, cToolArray.cornerPos.y +fixed_Y +intervalThickness);
+            text(str( roundToXdp( minorInterval*(counter) +visiblePos.x -((visiblePos.x) % (minorInterval)), 1 ) ), cToolArray.cornerPos.x +interval_loc_X, cToolArray.cornerPos.y +fixed_Y +intervalThickness);
 
             interval_loc_X += intervalSeparation;
             if(interval_loc_X > cToolArray.panelDim.x){
@@ -463,7 +545,7 @@ class cartographyMap{
         while(counter < counterMax){                //For Y
 
             line(cToolArray.cornerPos.x +fixed_X +intervalThickness, cToolArray.cornerPos.y +interval_loc_Y, cToolArray.cornerPos.x +fixed_X -intervalThickness, cToolArray.cornerPos.y +interval_loc_Y);
-            text(str( roundTo1dp( -minorInterval*(counter) +visiblePos.y -((visiblePos.y) % (minorInterval)) ) ), cToolArray.cornerPos.x +fixed_X +2.0*intervalThickness, cToolArray.cornerPos.y +interval_loc_Y);
+            text(str( roundToXdp( -minorInterval*(counter) +visiblePos.y -((visiblePos.y) % (minorInterval)), 1 ) ), cToolArray.cornerPos.x +fixed_X +2.0*intervalThickness, cToolArray.cornerPos.y +interval_loc_Y);
 
             interval_loc_Y += intervalSeparation;
             if(interval_loc_Y > cToolArray.panelDim.y){

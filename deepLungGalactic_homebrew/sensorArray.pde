@@ -174,7 +174,7 @@ class sensorArray{
         //Check all bodies
         for(int p=0; p<cSolarMap.spaceBodies.size(); p++){
             //If bounding boxes cross
-            PVector expandedScanDim = new PVector(1.2*cProbe.scanDim.x, 1.2*cProbe.scanDim.y);
+            PVector expandedScanDim = new PVector(1.6*cProbe.scanDim.x, 1.6*cProbe.scanDim.y);
             PVector planetDim = new PVector(2.0*cSolarMap.spaceBodies.get(p).radius, 2.0*cSolarMap.spaceBodies.get(p).radius);
             boolean boundsCross = checkRectRectCollision(cProbe.pos, expandedScanDim, cSolarMap.spaceBodies.get(p).pos, planetDim); //Bounds of viewable screen and planet(+ some change for expanded heat range)
             if(boundsCross){

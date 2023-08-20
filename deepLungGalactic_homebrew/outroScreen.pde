@@ -11,6 +11,8 @@ class outroScreen{
     */
     boolean isActive = false;
 
+    int dispType = 1;
+
     float timer = 0.0;              //Keeps track of how far through their playthrough the player is (in frames)
     float timerEndMax = 36000.0;    //10 mins at 60 fps => may be better to use some sort of clock module to just record a start and end time
 
@@ -23,6 +25,10 @@ class outroScreen{
     PVector analytics_pos;
     PVector story_dim;
     PVector story_pos;
+    PVector mapComp_dim;    //Both maps same dim
+    PVector mapComp_pos;    //Centre pos for REAL map, GUESSED map will be place to its RHS
+    PVector playAgain_dim;
+    PVector playAgain_pos;
 
     outroScreen(){
         score_dim     = new PVector(width/5.0, height/15.0);
@@ -31,6 +37,10 @@ class outroScreen{
         analytics_pos = new PVector(score_pos.x, score_pos.y +score_dim.y +height/25.0);
         story_dim     = new PVector(width/2.0, height/4.0);
         story_pos     = new PVector(width/2.0 -height/25.0, height/25.0);
+        mapComp_dim   = new PVector(height/5.0, height/5.0);
+        mapComp_pos   = new PVector(0.1*height +mapComp_dim.x/2.0, height-0.1*height -mapComp_dim.y/2.0);
+        playAgain_dim = new PVector(width/10.0, height/10.0);
+        playAgain_pos = new PVector(width -1.1*playAgain_dim.x, height -1.1*playAgain_dim.y);
     }
 
     boolean isTimeEnding(){
@@ -52,18 +62,28 @@ class outroScreen{
         boolean moneyEnding = isMoneyEnding();
         //...
         if( ((timeEnding) || (alienEnding)) || (moneyEnding) ){
-            println("Game is over");
+            //println("Game is over");
+            dispType = 1;
             return true;}
         else{
-            println("Game NOT over");
+            //println("Game NOT over");
             return false;}
     }
     void display(){
         display_background();
+        if(dispType == 1){
+            display_endScreen();
+        }
+        if(dispType == 2){
+            display_creditsScreen();
+        }
+    }
+    void display_endScreen(){
         display_graphic();
         display_score();
         display_analytics();
         display_story();
+        display_playAgain();
     }
     void display_background(){
         background(30,30,30);
@@ -71,9 +91,8 @@ class outroScreen{
     void display_graphic(){
         pushStyle();
 
-        fill(200,220,200,80);
-        rectMode(CORNER);
-        rect(0,0,width,height);
+        imageMode(CORNER);
+        image(texture_outro_screen, 0, 0);
 
         popStyle();
     }
@@ -93,7 +112,7 @@ class outroScreen{
     }
     void display_analytics(){
         display_analytics_wealth();
-        display_analytics_map();
+        display_analytics_map(cManager.cSolarMap);
     }
     void display_analytics_wealth(){
         pushStyle();
@@ -101,11 +120,22 @@ class outroScreen{
         rectMode(CORNER);
         fill(100,100,150);
         rect(analytics_pos.x, analytics_pos.y, analytics_dim.x, analytics_dim.y);
+        
+        float sizeOfText = analytics_dim.y/12.0;
+        fill(255,255,255);
+        textAlign(LEFT);
+        textSize(sizeOfText);
+        float wealthOwned = calcTotalWealth_acquired(cManager.cStockRecords);
+        float wealthLeft  = calcTotalWealth_remaining(cManager.cSolarMap, cManager.cStockRecords);
+        text("$"+ str(roundToXdp(wealthOwned, 1)), analytics_pos.x, analytics_pos.y +1.0*sizeOfText);
+        text("$"+ str(roundToXdp(wealthLeft, 1)) , analytics_pos.x, analytics_pos.y +2.2*sizeOfText);
+        text(str(roundToXdp(wealthOwned/(wealthLeft +wealthOwned), 4)) +"%", analytics_pos.x, analytics_pos.y +3.4*sizeOfText);
 
         popStyle();
     }
-    void display_analytics_map(){
-        //pass
+    void display_analytics_map(solarMap cSolarMap){
+        cSolarMap.display(mapComp_pos, (mapComp_dim.y/height));    //### For Bug-Fixing ###
+        cManager.cToolArray.cartoMap.displayMini(new PVector(mapComp_pos.x +mapComp_dim.x, mapComp_pos.y), 2.0);
     }
     void display_story(){
         pushStyle();
@@ -119,13 +149,43 @@ class outroScreen{
 
         popStyle();
     }
+    void display_playAgain(){
+        pushStyle();
+
+        rectMode(CORNER);
+        fill(200,200,200,70);
+        rect(playAgain_pos.x, playAgain_pos.y, playAgain_dim.x, playAgain_dim.y);
+
+        textAlign(CENTER, CENTER);
+        textSize(playAgain_dim.x/8.0);
+        fill(255,255,255);
+        text("Play Again", playAgain_pos.x +playAgain_dim.x/2.0, playAgain_pos.y +playAgain_dim.y/2.0);
+
+        popStyle();
+    }
+    void display_creditsScreen(){
+        pushStyle();
+        imageMode(CORNER);
+        image(texture_credits_screen, 0, 0);
+        popStyle();
+    }
 
     void calc(){
         //pass
     }
 
     void outroScreen_mousePressed(){
-        //pass
+        if(dispType == 1){
+            //restart game
+            boolean withinX = (playAgain_pos.x < mouseX) && (mouseX < playAgain_pos.x +playAgain_dim.x);
+            boolean withinY = (playAgain_pos.y < mouseY) && (mouseY < playAgain_pos.y +playAgain_dim.y);
+            if(withinX && withinY){
+                cManager = new manager();   //### CHECK THIS WORKS ###
+            }
+        }
+        if(dispType == 2){
+            isActive = false;   //Can click out of credits
+        }
     }
     void outroScreen_mouseReleased(){
         //pass
@@ -136,7 +196,7 @@ class outroScreen{
         if(isTimeEnding()){
             String line1 = "Your ship is scheduled to move. Records of the total profit ";
             String line2 = "are made and forwarded to the company. An efficiency report ";
-            String line3 = "is later returned to your to assess your quality of work;";
+            String line3 = "is later returned to you to assess your quality of work;";
             newStoryLog.add(line1);newStoryLog.add(line2);newStoryLog.add(line3);
         }
         else if(isAlienEnding()){
@@ -156,5 +216,25 @@ class outroScreen{
             newStoryLog.add(line1);
         }
         return newStoryLog;
+    }
+    float calcTotalWealth_acquired(stockRecords cStockRecords){
+        /*
+        Values all money and stock you own (at stock rates EVOLVED MULTIPLE TIMES) -> less predicatable => more risky
+        */
+        float totalValue = 0.0;
+        //Money
+        totalValue += cStockRecords.moneyOwned;
+        //Stocks
+        totalValue += cStockRecords.calcPositiveCost(cStockRecords.ship_inventory);
+        return totalValue;
+    }
+    float calcTotalWealth_remaining(solarMap cSolarMap, stockRecords cStockRecords){
+        /*
+        Values all ore remaining (at current stock rate)
+        */
+        float totalValue = 0.0;
+        for(int i=0; i<cSolarMap.spaceBodies.size(); i++){
+            totalValue += cSolarMap.spaceBodies.get(i).calcRemainingWealth(cStockRecords);}
+        return totalValue;
     }
 }

@@ -116,18 +116,21 @@ class button{
             cManager.cFlightControls.loadButtons_screen_probeLaunch();    //Load relevent buttons
         }
         if(buttonType == "flight_launch_fireProbe"){
-            cManager.cFlightControls.launchProbe(cManager.cSolarMap.probes, new PVector(0,0), cManager.cFlightControls.angularLauncher.getTheta(cManager.cFlightControls.angularLauncher_pos), cManager.cFlightControls.angularLauncher.getSpeed(cManager.cFlightControls.angularLauncher_pos, cManager.cFlightControls.angularLauncher_dim));
-            
-            // --> Go To Selection Copy         ### VERY SMALL BRAIN WAY OF DOING THIS, BUT IM TOO TIRED TO THINK OF THE CORRECT WAY ATM ;) #####
-            cManager.cFlightControls.screen_selection     = true;   //Change booleans
-            cManager.cFlightControls.screen_probeControls = false;  //
-            cManager.cFlightControls.screen_probeLaunch   = false;  //
-            cManager.cFlightControls.screen_outpostMining = false;  //
-            cManager.cFlightControls.angularLauncher.isVisible = false;
-            if(relatedOutpost != null){
-                relatedOutpost.miningSlider.isVisible = false;}         //##### BIT OF A BODGE, BUT RESPECTABLE ####
-            cManager.cFlightControls.loadButtons_screen_selection();    //Load relevent buttons
-            // --> Go To Selection Copy         ### VERY SMALL BRAIN WAY OF DOING THIS, BUT IM TOO TIRED TO THINK OF THE CORRECT WAY ATM ;) #####
+            if(cManager.cStockRecords. findItemCount(new item_probeCore(0.0)) > 0.0){
+                cManager.cStockRecords.addItem(new item_probeCore(-1.0), cManager.cStockRecords.ship_inventory);
+                cManager.cFlightControls.launchProbe(cManager.cSolarMap.probes, new PVector(0,0), cManager.cFlightControls.angularLauncher.getTheta(cManager.cFlightControls.angularLauncher_pos), cManager.cFlightControls.angularLauncher.getSpeed(cManager.cFlightControls.angularLauncher_pos, cManager.cFlightControls.angularLauncher_dim));
+                
+                // --> Go To Selection Copy         ### VERY SMALL BRAIN WAY OF DOING THIS, BUT IM TOO TIRED TO THINK OF THE CORRECT WAY ATM ;) #####
+                cManager.cFlightControls.screen_selection     = true;   //Change booleans
+                cManager.cFlightControls.screen_probeControls = false;  //
+                cManager.cFlightControls.screen_probeLaunch   = false;  //
+                cManager.cFlightControls.screen_outpostMining = false;  //
+                cManager.cFlightControls.angularLauncher.isVisible = false;
+                if(relatedOutpost != null){
+                    relatedOutpost.miningSlider.isVisible = false;}         //##### BIT OF A BODGE, BUT RESPECTABLE ####
+                cManager.cFlightControls.loadButtons_screen_selection();    //Load relevent buttons
+                // --> Go To Selection Copy         ### VERY SMALL BRAIN WAY OF DOING THIS, BUT IM TOO TIRED TO THINK OF THE CORRECT WAY ATM ;) #####
+            }
         }
         if(buttonType == "flight_goToSelection"){
             cManager.cFlightControls.screen_selection     = true;   //Change booleans
@@ -167,24 +170,13 @@ class button{
             cManager.cSensorArray.cDataType = relatedProbe.dataType;
         }
         if(buttonType == "flight_thrustForward"){
-            //####
-            //## MAKE WORK AS A CLICK AND HOLD BASED SYSTEM --> MAYBE NEW OBJECT TYPE -> INTERACTABLE NOT A BUTTON
-            //####
-            float thrust = 0.01;                            //## MAKE THIS PROBE SPECIFIC ## -> In AU
-            PVector dir = vec_unitVec(relatedProbe.vel);    //## CHANGE TO BE A DIRECTION IT IS FACING, HELD SEPARATELY, ROATATES ##
-            relatedProbe.vel.x += thrust*dir.x;
-            relatedProbe.vel.y += thrust*dir.x;
+            relatedProbe.thrustingFwd = true;
         }
         if(buttonType == "flight_thrustBack"){
-            //####
-            //## MAKE WORK AS A CLICK AND HOLD BASED SYSTEM --> MAYBE NEW OBJECT TYPE -> INTERACTABLE NOT A BUTTON
-            //####
-            float thrust = 0.01;                            //## MAKE THIS PROBE SPECIFIC ## -> In AU
-            PVector dir = vec_unitVec(relatedProbe.vel);    //## CHANGE TO BE A DIRECTION IT IS FACING, HELD SEPARATELY, ROATATES ##
-            relatedProbe.vel.x -= thrust*dir.x;
-            relatedProbe.vel.y -= thrust*dir.x;
+            relatedProbe.thrustingBck = true;
         }
         if(buttonType == "flight_outpost_mining_drillToggle"){
+            relatedOutpost.isTransporting = false;
             if(!relatedOutpost.locked){
                 relatedOutpost.isDrilling = !relatedOutpost.isDrilling;
                 if(!relatedOutpost.drillAngChosen){   //If a dig angle hasnt been chosen yet...
@@ -199,6 +191,7 @@ class button{
         }
         if(buttonType == "flight_outpost_mining_lockOutpost"){
             relatedOutpost.locked = true;   //Can only lock, CANNOT unlock (thats the whole point)
+            relatedOutpost.isDrilling = false;
         }
         if(buttonType == "flight_outpost_mining_tempQuick"){
             probe generatedProbe = new probe(relatedOutpost.linkedBody.pos, new PVector(0,0), new PVector(0,0));
@@ -222,13 +215,25 @@ class button{
             cManager.cSensorArray.cDataType = 2;
         }
         if(buttonType == "flight_outpost_mining_transportMinerals"){
-            relatedOutpost.transportMineralsToShip(cManager.cStockRecords);
+            relatedOutpost.isTransporting = !relatedOutpost.isTransporting;
+            relatedOutpost.isDrilling = false;
         }
         if(buttonType == "tools_goToSettings"){
             cManager.cToolArray.screen_selection    = false;  //Change booleans
             cManager.cToolArray.screen_settings     = true;   //
             cManager.cToolArray.screen_cartographer = false;  //
             cManager.cToolArray.loadButtons_screen_settings();    //Load relevent buttons
+        }
+        if(buttonType == "tools_quitGame"){
+            exit();
+        }
+        if(buttonType == "tools_goToCredits"){
+            cManager.cOutroScreen.isActive = true;
+            cManager.cOutroScreen.dispType = 2;
+        }
+        if(buttonType == "tools_goToManual"){
+            cManager.cIntroScreen.isActive = true;
+            cManager.cIntroScreen.dispType = 2;
         }
         if(buttonType == "tools_goToCartographer"){
             cManager.cToolArray.screen_selection    = false;  //Change booleans
@@ -245,7 +250,10 @@ class button{
         }
         if(buttonType == "tools_switchRadioStation"){
             println("Switching Station...");
-            //pass
+            if( sound_radio_radio1.isPlaying() ){
+                sound_radio_radio1.stop();}
+            else{
+                sound_radio_radio1.jump( random(0.0, 0.9*sound_radio_radio1.duration()) );}
         }
         if(buttonType == "tools_cartography_zoomOut"){
             cManager.cToolArray.cartoMap.resetZoom();
