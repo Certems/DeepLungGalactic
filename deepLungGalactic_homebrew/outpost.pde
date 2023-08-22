@@ -1,4 +1,4 @@
-float stdDigQuantity = 10.0;             //Standard dig quantity -> what dig multipliers are applied to to determine quantity dug
+float stdDigQuantity = 0.5;             //Standard dig quantity -> what dig multipliers are applied to to determine quantity dug
 
 class outpost{
     /*
@@ -95,7 +95,7 @@ class outpost{
         4. Adjust for loss
         */
         if(!locked){
-            float resistanceSF = 0.05;
+            float resistanceSF = 3.4;
             float resistanceLoss = 0.0;
             //1&2
             float agroRange = 0.8*linkedBody.radius;
@@ -109,6 +109,18 @@ class outpost{
             //4
             resistance -= resistanceLoss;
         }
+    }
+    boolean nestsInRange(){
+        boolean inRange = false;
+        float agroRange = 0.8*linkedBody.radius;
+        for(int i=0; i<linkedBody.alienNests.size(); i++){
+            float dist = vec_mag(vec_dir(pos, linkedBody.alienNests.get(i).pos));
+            if(dist <= agroRange){
+                inRange = true;
+                break;
+            }
+        }
+        return inRange;
     }
     void calcDestruction(solarMap cSolarMap){
         if(resistance <= 0.0){
@@ -290,7 +302,7 @@ class outpost{
         if(locked){
             transportRate *= 0.5;}
         if(cCargo.storedMinerals.size() > 0){
-            println("step transporting...");
+            //println("step transporting...");
             item givenItem = mineralToItem(cCargo.storedMinerals.get(0));
             float movedQuantity = min(transportRate, cCargo.storedMinerals.get(0).quantity);
             givenItem.quantity = movedQuantity;

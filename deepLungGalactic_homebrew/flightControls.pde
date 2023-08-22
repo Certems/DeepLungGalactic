@@ -117,20 +117,20 @@ class flightControls{
         mineralTank_dim     = new PVector(0.2*panelDim.x, 0.8*panelDim.y);
         mineralTank_pos     = new PVector(cornerPos.x +0.06*panelDim.x, cornerPos.y +0.1*panelDim.y);
         audioQuick_dim      = new PVector(0.1*panelDim.x,0.1*panelDim.x);
-        audioQuick_pos      = new PVector(cornerPos.x +0.4*panelDim.x,cornerPos.y +0.75*panelDim.y);
+        audioQuick_pos      = new PVector(cornerPos.x +0.54*panelDim.x,cornerPos.y +0.75*panelDim.y);
         mineralQuick_dim    = new PVector(0.1*panelDim.x,0.1*panelDim.x);
-        mineralQuick_pos    = new PVector(cornerPos.x +0.55*panelDim.x,cornerPos.y +0.75*panelDim.y);
+        mineralQuick_pos    = new PVector(cornerPos.x +0.42*panelDim.x,cornerPos.y +0.75*panelDim.y);
         tempQuick_dim       = new PVector(0.1*panelDim.x,0.1*panelDim.x);
-        tempQuick_pos       = new PVector(cornerPos.x +0.4*panelDim.x,cornerPos.y +0.45*panelDim.y);
+        tempQuick_pos       = new PVector(cornerPos.x +0.3*panelDim.x,cornerPos.y +0.75*panelDim.y);
         transport_dim       = new PVector(0.1*panelDim.x,0.1*panelDim.x);
-        transport_pos       = new PVector(cornerPos.x +0.55*panelDim.x,cornerPos.y +0.45*panelDim.y);
+        transport_pos       = new PVector(cornerPos.x +0.66*panelDim.x,cornerPos.y +0.75*panelDim.y);
         miningSlider_dim    = new PVector(panelDim.x/3.0, panelDim.y/10.0);
         miningSlider_pos    = new PVector( cornerPos.x +(panelDim.x -miningSlider_dim.x)/2.0, cornerPos.y +0.1*panelDim.y );
         lock_dim            = new PVector(0.1*panelDim.x,0.1*panelDim.x);
-        lock_pos            = new PVector(cornerPos.x +0.4*panelDim.x,cornerPos.y +0.25*panelDim.y);
+        lock_pos            = new PVector(cornerPos.x +0.3*panelDim.x,cornerPos.y +0.4*panelDim.y);
         lockIndicator_dim   = new PVector(0.1*panelDim.x, 0.1*panelDim.x);
-        lockIndicator_pos   = new PVector(cornerPos.x +0.8*panelDim.x, cornerPos.y +0.15*panelDim.y);
-        miningPos_dim       = new PVector(panelDim.x/6.0, panelDim.y/10.0);
+        lockIndicator_pos   = new PVector(cornerPos.x +0.54*panelDim.x,cornerPos.y +0.4*panelDim.y);
+        miningPos_dim       = new PVector(panelDim.x/6.0, panelDim.y/5.0);
         miningPos_pos       = new PVector(miningSlider_pos.x +1.1*miningSlider_dim.x, miningSlider_pos.y);
 
         loadButtons_screen_selection();
@@ -146,7 +146,7 @@ class flightControls{
             display_probeLaunch();}
         if(screen_outpostMining){
             display_outpostMining(buttonSet.get(0).relatedOutpost);}
-        display_buttonBounds();
+        //display_buttonBounds();   //## BUG FIXING ##
     }
     void calc(){
         //pass
@@ -179,7 +179,7 @@ class flightControls{
     void display_background(){
         pushStyle();
         rectMode(CORNER);
-        fill(20,20,30);
+        fill(20,20,20);
         noStroke();
         rect(cornerPos.x, cornerPos.y, panelDim.x, panelDim.y);
         popStyle();
@@ -312,7 +312,7 @@ class flightControls{
         fill(230,10,10);
         stroke(100,100,100);
         strokeWeight(2);
-        float fuelProp = 0.8;    //Proportion of fuel remaining -> Get from
+        float fuelProp = givenProbe.fuel;    //Proportion of fuel remaining -> Get from
         rect(fuel_pos.x, fuel_pos.y +(1.0-fuelProp)*fuel_dim.y, fuel_pos.x +fuel_dim.x, fuel_pos.y +fuel_dim.y);
 
         popStyle();
@@ -486,12 +486,12 @@ class flightControls{
         display_backButton();
 
         //## BUG FIXING
-        pushStyle();
-        fill(255,255,255);
-        textSize(30);
-        text(cOutpost.resistance, mouseX, mouseY);
-        text(str(cOutpost.locked), mouseX, mouseY +30.0);
-        popStyle();
+        //pushStyle();
+        //fill(255,255,255);
+        //textSize(30);
+        //text(cOutpost.resistance, mouseX, mouseY);
+        //text(str(cOutpost.locked), mouseX, mouseY +30.0);
+        //popStyle();
         //## BUG FIXING
     }
     void display_position(outpost cOutpost){
@@ -504,7 +504,9 @@ class flightControls{
         textAlign(CENTER, CENTER);
         textSize(panelDim.x/35.0);
         fill(230,230,230);
-        text("("+str(roundToXdp(cOutpost.pos.x +cOutpost.linkedBody.pos.x,1))+" ,"+str(roundToXdp(cOutpost.pos.y +cOutpost.linkedBody.pos.y,1))+")", miningPos_pos.x +miningPos_dim.x/2.0, miningPos_pos.y +miningPos_dim.y/2.0);
+        text("("+str(roundToXdp(cOutpost.linkedBody.pos.x,1))+" ,"+str(roundToXdp(-cOutpost.linkedBody.pos.y,1))+")", miningPos_pos.x +miningPos_dim.x/2.0, miningPos_pos.y +1.0*miningPos_dim.y/3.0);
+        fill(230,200,200);
+        text("("+str(roundToXdp(cOutpost.pos.x           ,1))+" ,"+str(roundToXdp(-cOutpost.pos.y,1))           +")", miningPos_pos.x +miningPos_dim.x/2.0, miningPos_pos.y +2.0*miningPos_dim.y/3.0);
         popStyle();
     }
     void display_drillToggle(){

@@ -63,6 +63,7 @@ class outroScreen{
         //...
         if( ((timeEnding) || (alienEnding)) || (moneyEnding) ){
             //println("Game is over");
+            sound_general_gameEnd.play();
             dispType = 1;
             return true;}
         else{
@@ -102,11 +103,11 @@ class outroScreen{
         fill(255,255,255);
         textAlign(CENTER, CENTER);
         textSize(score_dim.y/2.0);
-        text(cManager.cStockRecords.moneyOwned, score_pos.x +score_dim.x/2.0, score_pos.y +score_dim.y/2.0);
+        //text(cManager.cStockRecords.moneyOwned, score_pos.x +score_dim.x/2.0, score_pos.y +score_dim.y/2.0);
 
         rectMode(CORNER);
         fill(100,100,150,50);
-        rect(score_pos.x, score_pos.y, score_dim.x, score_dim.y);
+        //rect(score_pos.x, score_pos.y, score_dim.x, score_dim.y);
 
         popStyle();
     }
@@ -117,19 +118,22 @@ class outroScreen{
     void display_analytics_wealth(){
         pushStyle();
 
-        rectMode(CORNER);
-        fill(100,100,150);
-        rect(analytics_pos.x, analytics_pos.y, analytics_dim.x, analytics_dim.y);
-        
         float sizeOfText = analytics_dim.y/12.0;
+
+        rectMode(CORNER);
+        noStroke();
+        fill(150,110,110, 80);
+        rect(analytics_pos.x, analytics_pos.y +3.6*sizeOfText, analytics_dim.x/2.0, 1.2*sizeOfText);
+        
         fill(255,255,255);
         textAlign(LEFT);
-        textSize(sizeOfText);
         float wealthOwned = calcTotalWealth_acquired(cManager.cStockRecords);
         float wealthLeft  = calcTotalWealth_remaining(cManager.cSolarMap, cManager.cStockRecords);
-        text("$"+ str(roundToXdp(wealthOwned, 1)), analytics_pos.x, analytics_pos.y +1.0*sizeOfText);
-        text("$"+ str(roundToXdp(wealthLeft, 1)) , analytics_pos.x, analytics_pos.y +2.2*sizeOfText);
-        text(str(roundToXdp(wealthOwned/(wealthLeft +wealthOwned), 4)) +"%", analytics_pos.x, analytics_pos.y +3.4*sizeOfText);
+        textSize(sizeOfText);text("$"+ str(floor(cManager.cStockRecords.moneyOwned))   , analytics_pos.x, analytics_pos.y +1.0*sizeOfText);   textSize(sizeOfText*0.5);text("=> Raw Cash" , analytics_pos.x +analytics_dim.x*0.7, analytics_pos.y +1.0*sizeOfText);
+        textSize(sizeOfText);text("$"+ str(roundToXdp(wealthOwned, 1)), analytics_pos.x, analytics_pos.y +2.2*sizeOfText);   textSize(sizeOfText*0.5);text("=> Net Cash Total" , analytics_pos.x +analytics_dim.x*0.7, analytics_pos.y +2.2*sizeOfText);
+        textSize(sizeOfText);text("$"+ str(roundToXdp(wealthLeft, 1)) , analytics_pos.x, analytics_pos.y +3.4*sizeOfText);   textSize(sizeOfText*0.5);text("=> Net Cash Unclaimed" , analytics_pos.x +analytics_dim.x*0.7, analytics_pos.y +3.4*sizeOfText);
+        fill(170,170,250);
+        textSize(sizeOfText);text(str(roundToXdp(wealthOwned/(wealthLeft +wealthOwned), 4)) +"%", analytics_pos.x, analytics_pos.y +4.6*sizeOfText); textSize(sizeOfText*0.5);text("=> Solar Cash Percentage" , analytics_pos.x +analytics_dim.x*0.7, analytics_pos.y +4.6*sizeOfText);
 
         popStyle();
     }
@@ -142,9 +146,9 @@ class outroScreen{
 
         rectMode(CORNER);
         fill(100,150,100,50);
-        rect(story_pos.x, story_pos.y, story_dim.x, story_dim.y);
+        //rect(story_pos.x, story_pos.y, story_dim.x, story_dim.y);
 
-        float sizeOfText = story_dim.y/10.0;
+        float sizeOfText = story_dim.y/9.0;
         displayTextLog(generateStoryLog(), sizeOfText, new PVector(story_pos.x, story_pos.y +sizeOfText));
 
         popStyle();
@@ -180,7 +184,9 @@ class outroScreen{
             boolean withinX = (playAgain_pos.x < mouseX) && (mouseX < playAgain_pos.x +playAgain_dim.x);
             boolean withinY = (playAgain_pos.y < mouseY) && (mouseY < playAgain_pos.y +playAgain_dim.y);
             if(withinX && withinY){
-                cManager = new manager();   //### CHECK THIS WORKS ###
+                cManager = new manager();
+                cManager.cIntroScreen.sequenceCurrent = 99999.0;        //Skip intro
+                cManager.cIntroScreen.dispType = 2;                     //
             }
         }
         if(dispType == 2){
@@ -194,16 +200,19 @@ class outroScreen{
     ArrayList<String> generateStoryLog(){
         ArrayList<String> newStoryLog = new ArrayList<String>();
         if(isTimeEnding()){
-            String line1 = "Your ship is scheduled to move. Records of the total profit ";
+            String line1 = "Your ship is scheduled to move. Records of your total profit ";
             String line2 = "are made and forwarded to the company. An efficiency report ";
-            String line3 = "is later returned to you to assess your quality of work;";
-            newStoryLog.add(line1);newStoryLog.add(line2);newStoryLog.add(line3);
+            String line3 = "is constructed to evaluate your worth at the company. If you ";
+            String line4 = "are lucky a new salvage operation will be made available. ";
+            newStoryLog.add(line1);newStoryLog.add(line2);newStoryLog.add(line3);newStoryLog.add(line4);
         }
         else if(isAlienEnding()){
-            String line1 = "After losing multiple outposts to the alien ";
-            String line2 = "forces you are deemed incapable of continuing ";
-            String line3 = "your role.";
-            newStoryLog.add(line1);newStoryLog.add(line2);newStoryLog.add(line3);
+            String line1 = "After losing multiple outposts to the alien forces you are ";
+            String line2 = "deemed incapable of effective salvaging and removed from your ";
+            String line3 = "position immediately. A report is made to evaluate the work ";
+            String line4 = "conducted so far. All profits will be claimed by the company ";
+            String line5 = "to cover damages. ";
+            newStoryLog.add(line1);newStoryLog.add(line2);newStoryLog.add(line3);newStoryLog.add(line4);newStoryLog.add(line5);
         }
         else if(isMoneyEnding()){
             String line1 = "With all your money gone, the company ";

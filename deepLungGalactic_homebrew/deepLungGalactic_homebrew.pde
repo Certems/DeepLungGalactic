@@ -1,4 +1,14 @@
-import processing.sound.*;
+
+/*
+To work in JAVA;
+- Enable 'Sound' and disable 'Cassette'
+(CURRENTLY HAVE REMOVED JUMP AND DURATION FUNCTIONS FOR RADIO --> NEED TO ADJUST)
+
+To work in ANDROID
+- Do the opposite to java (Cassette+, Sound-)
+*/
+//import processing.sound.*;
+import cassette.audiofiles.*;
 
 manager cManager;
 mineralDictionary mineralDict;
@@ -21,8 +31,8 @@ void draw(){
 }
 void keyPressed(){
     if(key == '1'){
-        println("Fired probe (AND generate new cells)...");
-        cManager.cFlightControls.launchProbe(cManager.cSolarMap.probes, new PVector(0,0), random(0.0, 2.0*PI), random(0.001, 0.02));
+        println("Weaken outpost...");
+        cManager.cSolarMap.outposts.get(0).resistance -= 10.0;
     }
     if(key == '2'){
         println("Increment offsetInd AND generate new cells...");

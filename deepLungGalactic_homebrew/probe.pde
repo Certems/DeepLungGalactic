@@ -13,6 +13,7 @@ class probe{
     float mass       = 5.0*pow(10,3);           //In Kg, estimate
     PVector scanDim  = new PVector(5.0, 5.0);   //In AU, width and height of box -> for temp and minerals
     float landingVel = 9999;                    //Maximum velocity for which the probe will not crash when landing
+    float fuel = 1.0;                           //Percentage of fuel remaining
 
     float thrustPower = 5.0*pow(10, -2);
 
@@ -46,13 +47,17 @@ class probe{
         force.y += gravity.y;
 
         //Thrust (From Engines)
-        PVector thrustDir = vec_unitVec(vel);
-        if(thrustingFwd){
-            force.x += thrustPower*thrustDir.x;
-            force.y += thrustPower*thrustDir.y;}
-        if(thrustingBck){
-            force.x += thrustPower*(-thrustDir.x);  //Not actually thrustDir, is opposite direction (but this is more concise having -ve after)
-            force.y += thrustPower*(-thrustDir.y);}
+        if(fuel > 0.0){
+            PVector thrustDir = vec_unitVec(vel);
+            if(thrustingFwd){
+                force.x += thrustPower*thrustDir.x;
+                force.y += thrustPower*thrustDir.y;
+                fuel -= 0.001;}
+            if(thrustingBck){
+                force.x += thrustPower*(-thrustDir.x);  //Not actually thrustDir, is opposite direction (but this is more concise having -ve after)
+                force.y += thrustPower*(-thrustDir.y);
+                fuel -= 0.001;}
+        }
 
         //...
 

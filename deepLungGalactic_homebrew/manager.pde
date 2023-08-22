@@ -1,4 +1,6 @@
 class manager{
+    musicManager cMusicManager = new musicManager();
+    
     introScreen cIntroScreen = new introScreen();
 
     solarMap cSolarMap = new solarMap(fullMapRadius);
@@ -28,7 +30,8 @@ class manager{
         else if(cIntroScreen.isActive){
             cIntroScreen.calc();}
         else{
-            calc_panels();}
+            calc_panels();
+            cMusicManager.calc();}
     }
     void display_panels(){
         /*

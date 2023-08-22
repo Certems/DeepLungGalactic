@@ -105,7 +105,9 @@ class button{
             cManager.cFlightControls.loadButtons_screen_outpostMining(relatedOutpost);    //Load relevent buttons
         }
         if(buttonType == "flight_outpost_dismissDestroyed"){
-            //pass
+            cManager.cSolarMap.dismissOutpost(relatedOutpost);
+            cManager.cFlightControls.generateCellSet(cManager.cSolarMap.probes, cManager.cSolarMap.destroyed_probes, cManager.cSolarMap.outposts, cManager.cSolarMap.destroyed_outposts);
+            cManager.cFlightControls.loadButtons_screen_selection();
         }
         if(buttonType == "flight_goToLaunch"){
             cManager.cFlightControls.screen_selection     = false;  //Change booleans
@@ -166,6 +168,9 @@ class button{
             1. Get data for given type, give to sensor
             2. Change sensor type
             */
+            if(relatedProbe.dataType == 3){ //Sound
+                cManager.cSensorArray.relatedProbe = relatedProbe;
+                cManager.cSensorArray.relatedOutpost = null;}
             cManager.cSensorArray.recordReadings(relatedProbe, relatedProbe.dataType);
             cManager.cSensorArray.cDataType = relatedProbe.dataType;
         }
@@ -203,6 +208,9 @@ class button{
             //pass
         }
         if(buttonType == "flight_outpost_mining_audioQuick"){
+            cManager.cSensorArray.relatedProbe = null;
+            cManager.cSensorArray.relatedOutpost = relatedOutpost;
+
             probe generatedProbe = new probe(relatedOutpost.linkedBody.pos, new PVector(0,0), new PVector(0,0));
             generatedProbe.scanDim = new PVector(2.0*relatedOutpost.linkedBody.radius, 2.0*relatedOutpost.linkedBody.radius);   //### MAY NOT BE NEEDED ##
             cManager.cSensorArray.recordReadings(generatedProbe, 3);
@@ -235,6 +243,9 @@ class button{
             cManager.cIntroScreen.isActive = true;
             cManager.cIntroScreen.dispType = 2;
         }
+        if(buttonType == "tools_stopMusic"){
+            cManager.cMusicManager.toggleMusic();
+        }
         if(buttonType == "tools_goToCartographer"){
             cManager.cToolArray.screen_selection    = false;  //Change booleans
             cManager.cToolArray.screen_settings     = false;  //
@@ -250,10 +261,12 @@ class button{
         }
         if(buttonType == "tools_switchRadioStation"){
             println("Switching Station...");
-            if( sound_radio_radio1.isPlaying() ){
+            if(cManager.cSolarMap.radioActive){    //sound_radio_radio1.isPlaying()
                 sound_radio_radio1.stop();}
             else{
-                sound_radio_radio1.jump( random(0.0, 0.9*sound_radio_radio1.duration()) );}
+                sound_radio_radio1.play();} //Won't play after stopping, bug with cassette
+                //sound_radio_radio1.jump( random(0.0, 0.9*sound_radio_radio1.duration()) );}   //## NOT IMPLMENTED IN CASSETTE YET ##
+            cManager.cSolarMap.radioActive = !cManager.cSolarMap.radioActive;
         }
         if(buttonType == "tools_cartography_zoomOut"){
             cManager.cToolArray.cartoMap.resetZoom();
@@ -364,7 +377,7 @@ class button{
         else if(buttonType == "flight_incrementProbeIndOffset"){
             sound_general_scroller.play();}
         else if(buttonType == "flight_incrementOutpostIndOffset"){
-            sound_general_scroller.play();}   //## "" ____> + NEED TO ACTUALLY ADD THIS INTO GAME
+            sound_general_scroller.play();}
         else if(buttonType == "flight_outpost_mining_drillToggle"){
             sound_general_click_active.play();}
         else if(buttonType == "tools_switchRadioStation"){

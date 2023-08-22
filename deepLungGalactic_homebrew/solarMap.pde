@@ -7,6 +7,8 @@ class solarMap{
 
     MapRadius will be in terms of AU
     */
+    boolean radioActive = false;
+    
     ArrayList<probe> probes               = new ArrayList<probe>();
     ArrayList<probe> destroyed_probes     = new ArrayList<probe>();
     ArrayList<outpost> outposts           = new ArrayList<outpost>();
@@ -242,6 +244,9 @@ class solarMap{
                 cManager.cOutroScreen.outpostsDestroyed++;  //**For end game condition
             }
         }
+        //To Take you back to the main screen to SEE an outpost is now gone, BIG EVENT
+        button newButton = new button(new PVector(0,0), new PVector(0,0), "rect", "flight_goToSelection");
+        newButton.activate();
         //## MAYBE GENERATE DISP CELLS HERE IF IS A PROBLEM ##
     }
     void dismissOutpost(outpost cOutpost){

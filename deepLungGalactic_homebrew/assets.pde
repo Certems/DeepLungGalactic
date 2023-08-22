@@ -30,23 +30,39 @@ PImage texture_tools_selection_settings;
 PImage texture_tools_selection_settings_icon;
 PImage texture_tools_selection_settings_manualIcon;
 PImage texture_tools_selection_settings_creditsIcon;
+PImage texture_tools_selection_settings_stopMusic;
 PImage texture_tools_cartography_toggleWheel;
 PImage texture_tools_cartography_resetZoom;
 
-SoundFile sound_music_music1;
-SoundFile sound_music_music2;
-SoundFile sound_music_music3;
+SoundFile sound_music_1;
+SoundFile sound_music_2;
+SoundFile sound_music_3;
 SoundFile sound_general_button_back;
 SoundFile sound_general_click_active;
 SoundFile sound_general_click_inactive;
 SoundFile sound_general_scroller;
+SoundFile sound_general_gameStart;
+SoundFile sound_general_gameEnd;
 SoundFile sound_flight_probe_launched;
 SoundFile sound_flight_probe_destroyed;
 SoundFile sound_stocks_commitStaged_active;
 SoundFile sound_stocks_commitStaged_inactive;
-SoundFile sound_aliens_alien1;
-SoundFile sound_aliens_alien2;
-SoundFile sound_aliens_alien3;
+SoundFile sound_aliens_1_v1;  //
+SoundFile sound_aliens_1_v2;  //
+SoundFile sound_aliens_1_v3;  //
+SoundFile sound_aliens_1_v4;  //
+SoundFile sound_aliens_2_v1;      //
+SoundFile sound_aliens_2_v2;      //
+SoundFile sound_aliens_2_v3;      //
+SoundFile sound_aliens_2_v4;      //
+SoundFile sound_aliens_3_v1;  //
+SoundFile sound_aliens_3_v2;  //
+SoundFile sound_aliens_3_v3;  //
+SoundFile sound_aliens_3_v4;  //
+SoundFile sound_aliens_4_v1;      //
+SoundFile sound_aliens_4_v2;      //
+SoundFile sound_aliens_4_v3;      //
+SoundFile sound_aliens_4_v4;      //
 SoundFile sound_radio_radio1;   //** Likely will have only 1 long radio tune, clicking radio will toggle and jump between points within it
 
 /*
@@ -124,7 +140,7 @@ void load_textures_stocks(){
     texture_stocks_selection_inv                = loadImage("inventory_selectionBox.png");
     texture_stocks_selection_stockDetail        = loadImage("commitDetails.png");
     texture_stocks_selection_stockDetail_commit = loadImage("commitButton.png");
-    texture_stocks_selection_inv.resize(floor(cManager.cStockRecords.inv_dim.x), floor(2.0*cManager.cStockRecords.inv_dim.y));         //##### PUT A *2 FOR MORE CLARITY ######
+    texture_stocks_selection_inv.resize(floor(cManager.cStockRecords.inv_dim.x), floor(cManager.cStockRecords.inv_dim.y));
     texture_stocks_selection_stockDetail.resize(floor(cManager.cStockRecords.stockDetail_dim.x), floor(cManager.cStockRecords.stockDetail_dim.y));
     texture_stocks_selection_stockDetail_commit.resize(floor(cManager.cStockRecords.stockDetail_commit_dim.x), floor(cManager.cStockRecords.stockDetail_commit_dim.y));
 }
@@ -136,6 +152,7 @@ void load_textures_tools(){
     texture_tools_selection_settings_icon        = loadImage("exitGame_icon.png");
     texture_tools_selection_settings_manualIcon  = loadImage("manual_icon.png");
     texture_tools_selection_settings_creditsIcon = loadImage("credits_icon.png");
+    texture_tools_selection_settings_stopMusic   = loadImage("stopMusic_icon.png");
     texture_tools_cartography_toggleWheel        = loadImage("toggleCartoWheel.png");
     texture_tools_cartography_resetZoom          = loadImage("resetZoom.png");
     texture_tools_selection_cartographer.resize(floor(cManager.cToolArray.cartographer_dim.x), floor(cManager.cToolArray.cartographer_dim.y));
@@ -144,6 +161,7 @@ void load_textures_tools(){
     texture_tools_selection_settings_icon.resize(floor(cManager.cToolArray.quit_dim.x), floor(cManager.cToolArray.quit_dim.y));
     texture_tools_selection_settings_manualIcon.resize(floor(cManager.cToolArray.manualIcon_dim.x), floor(cManager.cToolArray.manualIcon_dim.y));
     texture_tools_selection_settings_creditsIcon.resize(floor(cManager.cToolArray.creditsIcon_dim.x), floor(cManager.cToolArray.creditsIcon_dim.y));
+    texture_tools_selection_settings_stopMusic.resize(floor(cManager.cToolArray.stopMusic_dim.x), floor(cManager.cToolArray.stopMusic_dim.y));
     texture_tools_cartography_toggleWheel.resize(floor(cManager.cToolArray.wheelLoad_dim.x), floor(cManager.cToolArray.wheelLoad_dim.y));
     texture_tools_cartography_resetZoom.resize(floor(cManager.cToolArray.zoomOutButton_dim.x), floor(cManager.cToolArray.zoomOutButton_dim.y));
 }
@@ -163,9 +181,9 @@ void load_sounds(){
 }
 
 void load_sounds_music(){
-    sound_music_music1 = new SoundFile(this, "background_1.wav");       //## SHOULD MOVE ALL TO MP3 --> SMALLER FILE SIZE FOR LARGER AUDIO LENGTHS
-    sound_music_music2 = new SoundFile(this, "background_1.wav");       //##
-    sound_music_music3 = new SoundFile(this, "background_1.wav");       //##
+    sound_music_1 = new SoundFile(this, "backgroundMusic_1.wav");   //** Would be better as MP3s, but they break with processing sound library so cant do that
+    sound_music_2 = new SoundFile(this, "backgroundMusic_2.wav");   //
+    sound_music_3 = new SoundFile(this, "backgroundMusic_3.wav");   //
 }
 
 void load_sounds_general(){
@@ -173,6 +191,8 @@ void load_sounds_general(){
     sound_general_click_active   = new SoundFile(this, "button_generalClick_active.wav");
     sound_general_click_inactive = new SoundFile(this, "button_generalClick_inactive.wav");
     sound_general_scroller       = new SoundFile(this, "button_scroller.wav");
+    sound_general_gameStart      = new SoundFile(this, "gameStart.wav");
+    sound_general_gameEnd        = new SoundFile(this, "gameEnd.wav");
 }
 
 void load_sounds_sensor(){
@@ -194,9 +214,25 @@ void load_sounds_tools(){
 }
 
 void load_sounds_aliens(){
-    sound_aliens_alien1 = new SoundFile(this, "aliens_1.wav");
-    sound_aliens_alien2 = new SoundFile(this, "aliens_1.wav");
-    sound_aliens_alien3 = new SoundFile(this, "aliens_1.wav");
+    sound_aliens_1_v1 = new SoundFile(this, "aliens_1_v1.wav");
+    sound_aliens_1_v2 = new SoundFile(this, "aliens_1_v2.wav");
+    sound_aliens_1_v3 = new SoundFile(this, "aliens_1_v3.wav");
+    sound_aliens_1_v4 = new SoundFile(this, "aliens_1_v4.wav");
+
+    sound_aliens_2_v1 = new SoundFile(this, "aliens_2_v1.wav");
+    sound_aliens_2_v2 = new SoundFile(this, "aliens_2_v2.wav");
+    sound_aliens_2_v3 = new SoundFile(this, "aliens_2_v3.wav");
+    sound_aliens_2_v4 = new SoundFile(this, "aliens_2_v4.wav");
+
+    sound_aliens_3_v1 = new SoundFile(this, "aliens_3_v1.wav");
+    sound_aliens_3_v2 = new SoundFile(this, "aliens_3_v2.wav");
+    sound_aliens_3_v3 = new SoundFile(this, "aliens_3_v3.wav");
+    sound_aliens_3_v4 = new SoundFile(this, "aliens_3_v4.wav");
+
+    sound_aliens_4_v1 = new SoundFile(this, "aliens_4_v1.wav");
+    sound_aliens_4_v2 = new SoundFile(this, "aliens_4_v2.wav");
+    sound_aliens_4_v3 = new SoundFile(this, "aliens_4_v3.wav");
+    sound_aliens_4_v4 = new SoundFile(this, "aliens_4_v4.wav");
 }
 
 void load_sounds_radio(){

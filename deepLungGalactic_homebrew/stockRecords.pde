@@ -82,12 +82,12 @@ class stockRecords{
             display_selection();}
         if(screen_stockGraphs){
             display_stockGraph(buttonSet.get(0).relatedItem);}
-        display_buttonBounds();
+        //display_buttonBounds();   //## BUG FIXING ##
     }
     void display_background(){
         pushStyle();
         rectMode(CORNER);
-        fill(20,30,20);
+        fill(20,20,20);
         noStroke();
         rect(cornerPos.x, cornerPos.y, panelDim.x, panelDim.y);
         popStyle();
@@ -122,9 +122,10 @@ class stockRecords{
                 if(onLastLine && moreInvRemaining){
                     infoText_name = "...";}
                 textAlign(LEFT);
-                text(infoText_name,  cornerPos.x +inv_leftBorder                 ,cornerPos.y +inv_border*(i+1) +inv_dim.y*(i) +inv_sizeOfText);
+                text(infoText_name,  cornerPos.x +inv_leftBorder                 ,cornerPos.y +inv_border*(i+1) +inv_dim.y*(i) +inv_dim.y/2.0);     //+1.5*inv_sizeOfText
                 textAlign(CENTER);
-                text(infoText_value, cornerPos.x +inv_leftBorder +inv_dim.x/2.0 , cornerPos.y +inv_border*(i+1) +inv_dim.y*(i) +inv_sizeOfText);}
+                text(infoText_value, cornerPos.x +inv_leftBorder +inv_dim.x/2.0 , cornerPos.y +inv_border*(i+1) +inv_dim.y*(i) +inv_dim.y/2.0);     //+1.5*inv_sizeOfText
+                popStyle();}
             else{
                 break;}
         }
@@ -452,7 +453,6 @@ class stockRecords{
         */
         //1
         for(int i=0; i<stockExchange.size(); i++){
-            println(i);
             //2
             float randFactor = random(-0.15, 0.15);                                             //Percentage INCREASE or DECREASE, NOT a multiplier
             float newPrice = stockExchange.values.get(i).get(0)*(1.0 +randFactor);

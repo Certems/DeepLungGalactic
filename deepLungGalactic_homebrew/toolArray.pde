@@ -52,6 +52,8 @@ class toolArray{
     PVector creditsIcon_pos;
     PVector manualIcon_dim;
     PVector manualIcon_pos;
+    PVector stopMusic_dim;
+    PVector stopMusic_pos;
 
     cartography_main_wheel wheel_main;
     cartographyMap cartoMap;
@@ -80,6 +82,8 @@ class toolArray{
         creditsIcon_pos = new PVector(cornerPos.x +0.08*panelDim.x, cornerPos.y +panelDim.y -1.1*creditsIcon_dim.y);
         manualIcon_dim  = new PVector(panelDim.y/5.0, panelDim.y/5.0);
         manualIcon_pos  = new PVector(creditsIcon_pos.x +1.6*creditsIcon_dim.x, cornerPos.y +panelDim.y -1.1*manualIcon_dim.y);
+        stopMusic_dim   = new PVector(panelDim.y/5.0, panelDim.y/5.0);
+        stopMusic_pos   = new PVector(manualIcon_pos.x +1.6*manualIcon_dim.x, cornerPos.y +panelDim.y -1.1*stopMusic_dim.y);
 
         init_mainWheel();
         init_cartographyMap();
@@ -95,12 +99,12 @@ class toolArray{
             display_settings();}
         if(screen_cartographer){
             display_cartographer();}
-        display_buttonBounds();
+        //display_buttonBounds();   //## BUG FIXING ##
     }
     void display_background(){
         pushStyle();
         rectMode(CORNER);
-        fill(20,20,20);
+        fill(20,20,25);
         noStroke();
         rect(cornerPos.x, cornerPos.y, panelDim.x, panelDim.y);
         popStyle();
@@ -197,6 +201,7 @@ class toolArray{
         display_exitGameIcon();
         display_creditsIcon();
         display_manualIcon();
+        display_stopMusic();
         display_backIcon();
         //....
     }
@@ -257,6 +262,12 @@ class toolArray{
         fill(80,80,80,100);
         noStroke();
         rect(manualIcon_pos.x, manualIcon_pos.y, manualIcon_dim.x, manualIcon_dim.y);
+        popStyle();
+    }
+    void display_stopMusic(){
+        pushStyle();
+        imageMode(CORNER);
+        image(texture_tools_selection_settings_stopMusic, stopMusic_pos.x, stopMusic_pos.y);
         popStyle();
     }
     //Cartographer
@@ -356,8 +367,9 @@ class toolArray{
         button newButton0 = new button(quit_pos       , quit_dim       , "rect", "tools_quitGame");
         button newButton1 = new button(creditsIcon_pos, creditsIcon_dim, "rect", "tools_goToCredits");
         button newButton2 = new button(manualIcon_pos , manualIcon_dim , "rect", "tools_goToManual");
-        button newButton3 = new button(back_pos, back_dim, "rect", "tools_goToSelection");
-        buttonSet.add(newButton0);buttonSet.add(newButton1);buttonSet.add(newButton2);buttonSet.add(newButton3);
+        button newButton3 = new button(stopMusic_pos  , stopMusic_dim  , "rect", "tools_stopMusic");
+        button newButton4 = new button(back_pos, back_dim, "rect", "tools_goToSelection");
+        buttonSet.add(newButton0);buttonSet.add(newButton1);buttonSet.add(newButton2);buttonSet.add(newButton3);buttonSet.add(newButton4);
     }
     void loadButtons_screen_cartographer(){
         buttonSet.clear();

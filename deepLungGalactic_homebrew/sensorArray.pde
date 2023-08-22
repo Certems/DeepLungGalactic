@@ -24,6 +24,9 @@ class sensorArray{
     int cDataType   = 0;           //Initialised
     int maxDataType = 5;
 
+    probe relatedProbe = null;
+    outpost relatedOutpost = null;
+
     //40 resPwr for distance
     //30 for temp sensor maybe
 
@@ -70,7 +73,7 @@ class sensorArray{
     void display_background(){
         pushStyle();
         rectMode(CORNER);
-        fill(30,20,20);
+        fill(20,20,25);
         noStroke();
         rect(cornerPos.x, cornerPos.y, panelDim.x, panelDim.y);
         popStyle();
@@ -310,9 +313,6 @@ class sensorArray{
         0.0 = no intenisty
         1.0 = max intenisty
         */
-        //####
-        //## THIS JUST GENERATES POINTLESS DATA, IN REALITY BASE OFF OF ALIENS & RECORDED SOUND
-        //####
         sensorData.clear();
         sensorData.add(new ArrayList<Float>());
         float variation = 0.07;
@@ -450,17 +450,20 @@ class sensorArray{
             */
             float border        = panelDim.x/20.0;
             float intervalJump  = (panelDim.x-2.0*border) / (sensorReadings.get(0).size());
-            float normalisation = panelDim.y/2.0;
+            //float normalisation = panelDim.y/2.0;
             pushStyle();
             stroke(255,255,255);
             strokeWeight(2);
             noFill();
             line(cornerPos.x +border, cornerPos.y +panelDim.y/2.0, cornerPos.x +panelDim.x -border, cornerPos.y +panelDim.y/2.0);
             for(int i=0; i<sensorReadings.get(0).size(); i++){
-                ellipse(cornerPos.x +border +i*intervalJump, panelDim.y/2.0 -normalisation*sensorZoom*sensorReadings.get(0).get(i), 10,10);
+                ellipse(cornerPos.x +border +i*intervalJump, panelDim.y/2.0 -sensorZoom*sensorReadings.get(0).get(i), 10,10);
                 //println(normalisation*sensorZoom*sensorReadings.get(0).get(i));
             }
             popStyle();
+
+            calcAlienSound();
+            reduceSoundReadings();
         }
         if(dataType == 4){
             /*
@@ -551,6 +554,68 @@ class sensorArray{
             }
         }
         return normValue;
+    }
+
+
+    void calcAlienSound(){
+        /*
+        Calculates which alien sound to play
+        0. If sensor array is looking at sound, allow this to check around given outpost
+            -> If is is a probe, always leave with static
+        1. If aliens are also close enough, then allow play
+        2. Randomly decide when to play noise
+        3.  Noise loudness is dependent on resistance outpost is at (lower res => louder sound + higher prob)
+        4. When it triggers
+        */
+        float triggerRoll = random(0.0, 1.0);
+        if(triggerRoll < 0.01){
+            //Loop static noise
+            addRandomSoundData(0);
+            playStatic_sound();
+            if(relatedProbe != null){
+                //Just do static addition, leave noise alone
+            }
+            if(relatedOutpost != null){
+                //Look for nearby aliens
+                boolean aliensNearby = relatedOutpost.nestsInRange();
+                if(aliensNearby){
+                    //If aliens are nearby, look at resistance to determine
+                    if(relatedOutpost.resistance > 75.0){       //QUIET
+                        addRandomSoundData(1);
+                        playAlien_sound_1();}
+                    else if(relatedOutpost.resistance > 50.0){
+                        addRandomSoundData(2);
+                        playAlien_sound_2();}
+                    else if(relatedOutpost.resistance > 25.0){
+                        addRandomSoundData(3);
+                        playAlien_sound_3();}
+                    else{                                       //LOUD
+                        addRandomSoundData(4);
+                        playAlien_sound_4();}
+                }
+            }
+        }
+    }
+    void reduceSoundReadings(){
+        float reductionFactor = 0.96;   //Applied every frame
+        for(int i=0; i<sensorData.get(0).size(); i++){
+            float newValue = reductionFactor*sensorData.get(0).get(i);
+            sensorData.get(0).remove(i);
+            sensorData.get(0).add(i, newValue);
+        }
+    }
+    void addRandomSoundData(int volume){
+        for(int i=0; i<sensorData.get(0).size(); i++){
+            float randRoll = random(0.0, 1.0);
+            if(randRoll <= 0.05*(volume+1.0)){
+                float noise    = random(0.0, panelDim.y/50.0);
+                float amp      = volume*random(0.0, panelDim.y/16.0);
+                float oldValue = sensorData.get(0).get(i);
+                float newValue = oldValue +amp +noise;
+                sensorData.get(0).remove(i);
+                sensorData.get(0).add(i, newValue);
+            }
+        }
     }
 
 
@@ -752,16 +817,50 @@ class dart{
     }
 }
 
-/*
-
-###
-###
- Drilling in wrong direction, X and Y flipped somewhere????????
-Fix the cargo container showing materials too
-
- ALSO, ADD AN --[ICON FOR THE OUTPOST]-- ON THE SCANNER WHEN VIEWED FROM QUICK-MINERAL
-
- ADD ALIEN INTERACTIONS + ACTUAL WORKING SOUND STUFF
-###
-###
-*/
+void playStatic_sound(){    //Static
+    //pass
+}
+void playAlien_sound_1(){   //QUIET
+    float rand = random(0.0, 1.0);
+    if(rand < 0.25){
+        sound_aliens_1_v1.play();}
+    else if(rand < 0.5){
+        sound_aliens_2_v1.play();}
+    else if(rand < 0.75){
+        sound_aliens_3_v1.play();}
+    else{
+        sound_aliens_4_v1.play();}
+}
+void playAlien_sound_2(){
+    float rand = random(0.0, 1.0);
+    if(rand < 0.25){
+        sound_aliens_1_v2.play();}
+    else if(rand < 0.5){
+        sound_aliens_2_v2.play();}
+    else if(rand < 0.75){
+        sound_aliens_3_v2.play();}
+    else{
+        sound_aliens_4_v2.play();}
+}
+void playAlien_sound_3(){
+    float rand = random(0.0, 1.0);
+    if(rand < 0.25){
+        sound_aliens_1_v3.play();}
+    else if(rand < 0.5){
+        sound_aliens_2_v3.play();}
+    else if(rand < 0.75){
+        sound_aliens_3_v3.play();}
+    else{
+        sound_aliens_4_v3.play();}
+}
+void playAlien_sound_4(){   //LOUD
+    float rand = random(0.0, 1.0);
+    if(rand < 0.25){
+        sound_aliens_1_v4.play();}
+    else if(rand < 0.5){
+        sound_aliens_2_v4.play();}
+    else if(rand < 0.75){
+        sound_aliens_3_v4.play();}
+    else{
+        sound_aliens_4_v4.play();}
+}

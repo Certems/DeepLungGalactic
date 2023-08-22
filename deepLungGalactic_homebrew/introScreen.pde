@@ -19,10 +19,10 @@ class introScreen{
     int dispType = 1;
 
     float transitionCurrent = 0.0;  //This will be reset once a transition is done, and only every incremented when transitioning
-    float sequenceCurrent;
+    float sequenceCurrent = 0.0;
 
     introScreen(){
-        sequenceCurrent = 0.0;
+        sequenceCurrent = 0.0;  //Just not needed, but a good meme
     }
 
     void display(){
@@ -139,6 +139,7 @@ class introScreen{
 
     void introScreen_mousePressed(){
         if(dispType == 2){
+            sound_general_gameStart.play();
             isActive = false;}      //## MAYBE ADD SOME FADE ##
     }
     void introScreen_mouseReleased(){
